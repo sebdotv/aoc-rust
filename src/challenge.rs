@@ -13,6 +13,7 @@ pub struct ChallengeDay<T> {
     pub part1_solver: PartSolver<T>,
     pub part2_solver: PartSolver<T>,
     pub source_file: &'static str,
+    pub distinct_examples: bool,
 }
 
 impl<T> ChallengeDay<T> {
@@ -65,11 +66,11 @@ pub struct SourceFileLocation {
     pub stem: String,
 }
 
-#[derive(Debug, EnumIter, strum_macros::Display)]
+#[derive(Debug, EnumIter, strum_macros::Display, Copy, Clone)]
 #[strum(serialize_all = "lowercase")]
 pub enum Part {
-    Part1,
-    Part2,
+    Part1 = 1,
+    Part2 = 2,
 }
 
 #[derive(Debug)]

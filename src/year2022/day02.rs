@@ -10,6 +10,7 @@ pub fn day() -> ChallengeDay<u32> {
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
+        distinct_examples: false,
     }
 }
 

@@ -9,7 +9,9 @@ use aoc_rust::all_challenge_days;
 use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
 
 fn main() -> Result<()> {
-    for ref day in all_challenge_days().iter().rev().take(1) {
+    let challenge_days = all_challenge_days();
+    // let challenge_days = challenge_days.iter().rev().take(1);
+    for ref day in challenge_days {
         match day {
             ChallengeDayType::I32(day) => check_day(day)?,
             ChallengeDayType::U32(day) => check_day(day)?,
@@ -23,10 +25,29 @@ fn check_day<T>(day: &ChallengeDay<T>) -> Result<()>
 where
     T: Eq + Debug,
 {
-    let example_data = day.read_data_file("example")?;
+    let example_data = if !day.distinct_examples {
+        Some(day.read_data_file("example")?)
+    } else {
+        None
+    };
     let input_data = day.read_data_file("input")?;
     for ref part in Part::iter() {
-        check_part(day, part, &example_data, &input_data)?;
+        let part_example_data = if example_data.is_none() {
+            let file_name = format!("example{}", *part as u8);
+            Some(day.read_data_file(file_name.as_str())?)
+        } else {
+            None
+        };
+        check_part(
+            day,
+            part,
+            part_example_data
+                .as_ref()
+                .or(example_data.as_ref())
+                .unwrap()
+                .as_str(),
+            &input_data,
+        )?;
     }
     Ok(())
 }

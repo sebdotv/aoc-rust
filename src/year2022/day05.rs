@@ -15,6 +15,7 @@ pub fn day() -> ChallengeDay<String> {
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
+        distinct_examples: false,
     }
 }
 
