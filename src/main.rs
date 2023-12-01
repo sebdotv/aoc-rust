@@ -20,8 +20,8 @@ fn main() -> Result<()> {
 }
 
 fn check_day<T>(day: &ChallengeDay<T>) -> Result<()>
-where
-    T: Eq + Debug,
+    where
+        T: Eq + Debug,
 {
     let example_data = day.read_data_file("example")?;
     let input_data = day.read_data_file("input")?;
@@ -37,26 +37,24 @@ fn check_part<T>(
     example_data: &str,
     input_data: &str,
 ) -> Result<()>
-where
-    T: Eq + Debug,
+    where
+        T: Eq + Debug,
 {
     if let Some((example_solution, input_solution)) = day.solutions(part) {
         check_value(
             day,
             part,
             "example",
-            example_solution,
+            Some(example_solution),
             solve_and_measure(day, part, example_data)?,
         );
-        if let Some(input_solution) = input_solution {
-            check_value(
-                day,
-                part,
-                "input",
-                input_solution,
-                solve_and_measure(day, part, input_data)?,
-            );
-        }
+        check_value(
+            day,
+            part,
+            "input",
+            input_solution.as_ref(),
+            solve_and_measure(day, part, input_data)?,
+        );
     }
     Ok(())
 }
@@ -73,27 +71,38 @@ fn check_value<T>(
     day: &ChallengeDay<T>,
     part: &Part,
     label: &str,
-    expected: &T,
+    expected: Option<&T>,
     actual_result: (T, Duration),
 ) where
     T: Eq + Debug,
 {
     let (actual, duration) = actual_result;
-    let (status, details) = if actual == *expected {
-        (
-            "OK".green(),
-            format!("{:.1} µs", duration.as_secs_f64() * 1e6)
-                .yellow()
-                .to_string(),
-        )
+    let duration_str = || format!("{:.1} µs", duration.as_secs_f64() * 1e6)
+        .yellow()
+        .to_string();
+    let (status, details) = if let Some(expected) = expected {
+        if actual == *expected {
+            (
+                "OK".green(),
+                duration_str(),
+            )
+        } else {
+            (
+                "FAIL".red().bold(),
+                format!(
+                    "expected {}, got {}",
+                    format!("{:?}", expected).green(),
+                    format!("{:?}", actual).red(),
+                ),
+            )
+        }
     } else {
         (
-            "FAIL".red().bold(),
-            format!(
-                "expected {}, got {}",
-                format!("{:?}", expected).green(),
-                format!("{:?}", actual).red(),
-            ),
+            "NEW".cyan(),
+            format!("{} {} (not checked)",
+                    duration_str(),
+                    format!("{:?}", actual).cyan().bold(),
+            )
         )
     };
     println!("{} {} {} [{}]", status, day.label(part), label, details);
