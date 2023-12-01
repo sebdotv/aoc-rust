@@ -20,7 +20,7 @@ pub fn day() -> ChallengeDay<String> {
 
 fn part1(data: &str) -> Result<String> {
     let lines = data.lines().collect_vec();
-    let (start, moves) = lines
+    let (_start, moves) = lines
         .split(|line| line.is_empty())
         .collect_tuple()
         .ok_or(anyhow!("Could not split"))?;
@@ -40,7 +40,7 @@ fn part1(data: &str) -> Result<String> {
     Ok("todo".to_owned())
 }
 
-fn part2(data: &str) -> Result<String> {
+fn part2(_data: &str) -> Result<String> {
     todo!()
 }
 
