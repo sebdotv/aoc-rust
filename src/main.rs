@@ -20,8 +20,8 @@ fn main() -> Result<()> {
 }
 
 fn check_day<T>(day: &ChallengeDay<T>) -> Result<()>
-    where
-        T: Eq + Debug,
+where
+    T: Eq + Debug,
 {
     let example_data = day.read_data_file("example")?;
     let input_data = day.read_data_file("input")?;
@@ -37,8 +37,8 @@ fn check_part<T>(
     example_data: &str,
     input_data: &str,
 ) -> Result<()>
-    where
-        T: Eq + Debug,
+where
+    T: Eq + Debug,
 {
     if let Some((example_solution, input_solution)) = day.solutions(part) {
         check_value(
@@ -77,15 +77,14 @@ fn check_value<T>(
     T: Eq + Debug,
 {
     let (actual, duration) = actual_result;
-    let duration_str = || format!("{:.1} µs", duration.as_secs_f64() * 1e6)
-        .yellow()
-        .to_string();
+    let duration_str = || {
+        format!("{:.1} µs", duration.as_secs_f64() * 1e6)
+            .yellow()
+            .to_string()
+    };
     let (status, details) = if let Some(expected) = expected {
         if actual == *expected {
-            (
-                "OK".green(),
-                duration_str(),
-            )
+            ("OK".green(), duration_str())
         } else {
             (
                 "FAIL".red().bold(),
@@ -99,10 +98,11 @@ fn check_value<T>(
     } else {
         (
             "NEW".cyan(),
-            format!("{} {} (not checked)",
-                    duration_str(),
-                    format!("{:?}", actual).cyan().bold(),
-            )
+            format!(
+                "{} {} (not checked)",
+                duration_str(),
+                format!("{:?}", actual).cyan().bold(),
+            ),
         )
     };
     println!("{} {} {} [{}]", status, day.label(part), label, details);
