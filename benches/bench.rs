@@ -3,8 +3,8 @@ use std::fmt::Debug;
 use criterion::{criterion_group, criterion_main, Criterion};
 use strum::IntoEnumIterator;
 
-use aoc23_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
-use aoc23_rust::*;
+use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
+use aoc_rust::*;
 
 fn bench_challenge_days(c: &mut Criterion) {
     for day in all_challenge_days() {

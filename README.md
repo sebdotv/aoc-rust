@@ -1,4 +1,4 @@
-# aoc23-rust
+# aoc-rust
 
 ### download
 

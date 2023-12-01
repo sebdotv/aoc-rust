@@ -5,8 +5,8 @@ use anyhow::Result;
 use colored::Colorize;
 use strum::IntoEnumIterator;
 
-use aoc23_rust::all_challenge_days;
-use aoc23_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
+use aoc_rust::all_challenge_days;
+use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
 
 fn main() -> Result<()> {
     for ref day in all_challenge_days().iter().rev().take(1) {
