@@ -58,12 +58,14 @@ impl Part2Extractor {
 
     fn process(&self, s: &str) -> Result<(u32, u32)> {
         let chars = s.chars().collect_vec();
-        let digits = (0..chars.len())
-            .filter_map(|pos| self.get_digit(&chars, pos))
-            .collect_vec();
-        let first = digits.first().unwrap();
-        let last = digits.last().unwrap();
-        Ok((*first, *last))
+        let first = (0..chars.len())
+            .find_map(|pos| self.get_digit(&chars, pos))
+            .unwrap();
+        let last = (0..chars.len())
+            .rev()
+            .find_map(|pos| self.get_digit(&chars, pos))
+            .unwrap();
+        Ok((first, last))
     }
 }
 
