@@ -1,13 +1,12 @@
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use regex::Regex;
 
 use crate::challenge::ChallengeDay;
 
 pub fn day() -> ChallengeDay<u32> {
     ChallengeDay {
         part1_solutions: (142, Some(54390)),
-        part2_solutions: Some((281, None)),
+        part2_solutions: Some((281, Some(54277))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -33,43 +32,38 @@ fn part1(data: &str) -> Result<u32> {
 
 struct Part2Extractor {
     digits: [&'static str; 9],
-    re: Regex,
 }
 impl Part2Extractor {
     fn new() -> Self {
         let digits = [
             "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
         ];
-        let re = format!("[0-9]|{}", digits.join("|"));
-        let re = Regex::new(re.as_str()).unwrap();
-        Self { digits, re }
+        Self { digits }
+    }
+
+    fn get_digit(&self, chars: &Vec<char>, pos: usize) -> Option<u32> {
+        let c = chars[pos];
+        if c.is_ascii_digit() {
+            Some(c.to_digit(10).unwrap())
+        } else {
+            for (i, digit) in self.digits.iter().enumerate() {
+                let substr: String = chars.iter().skip(pos).take(digit.len()).collect();
+                if substr == *digit {
+                    return Some(i as u32 + 1);
+                }
+            }
+            None
+        }
     }
 
     fn process(&self, s: &str) -> Result<(u32, u32)> {
-        let matches = self.re.find_iter(s).map(|m| m.as_str()).collect_vec();
-        let first: u32 = self.parse_digit(matches.first().unwrap())?;
-        let last: u32 = self.parse_digit(matches.last().unwrap())?;
-        println!(
-            "line: {}; matches: {:?}; result: {:?}",
-            s,
-            matches,
-            (first, last)
-        );
-        Ok((first, last))
-    }
-
-    fn parse_digit(&self, s: &str) -> Result<u32> {
-        if let Ok(n) = s.parse::<u32>() {
-            Ok(n)
-        } else {
-            let n = self
-                .digits
-                .iter()
-                .position(|&d| d == s)
-                .ok_or(anyhow!("not a spelled digit"))?
-                + 1;
-            Ok(n as u32)
-        }
+        let chars = s.chars().collect_vec();
+        let digits = (0..chars.len())
+            .filter_map(|pos| self.get_digit(&chars, pos))
+            .collect_vec();
+        let first = digits.first().unwrap();
+        let last = digits.last().unwrap();
+        Ok((*first, *last))
     }
 }
 
