@@ -30,23 +30,18 @@ fn part1(data: &str) -> Result<u32> {
     Ok(values.iter().sum())
 }
 
-struct Part2Extractor {
-    digits: [&'static str; 9],
-}
-impl Part2Extractor {
-    fn new() -> Self {
-        let digits = [
-            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-        ];
-        Self { digits }
-    }
+const DIGITS: [&str; 9] = [
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+];
 
-    fn get_digit(&self, chars: &Vec<char>, pos: usize) -> Option<u32> {
+struct Part2Extractor {}
+impl Part2Extractor {
+    fn get_digit(chars: &Vec<char>, pos: usize) -> Option<u32> {
         let c = chars[pos];
         if c.is_ascii_digit() {
             Some(c.to_digit(10).unwrap())
         } else {
-            for (i, digit) in self.digits.iter().enumerate() {
+            for (i, digit) in DIGITS.iter().enumerate() {
                 let substr: String = chars.iter().skip(pos).take(digit.len()).collect();
                 if substr == *digit {
                     return Some(i as u32 + 1);
@@ -56,25 +51,24 @@ impl Part2Extractor {
         }
     }
 
-    fn process(&self, s: &str) -> Result<(u32, u32)> {
+    fn process(s: &str) -> Result<(u32, u32)> {
         let chars = s.chars().collect_vec();
         let first = (0..chars.len())
-            .find_map(|pos| self.get_digit(&chars, pos))
-            .unwrap();
+            .find_map(|pos| Self::get_digit(&chars, pos))
+            .ok_or(anyhow!("no first digit"))?;
         let last = (0..chars.len())
             .rev()
-            .find_map(|pos| self.get_digit(&chars, pos))
-            .unwrap();
+            .find_map(|pos| Self::get_digit(&chars, pos))
+            .ok_or(anyhow!("no last digit"))?;
         Ok((first, last))
     }
 }
 
 fn part2(data: &str) -> Result<u32> {
-    let extractor = Part2Extractor::new();
     let values = data
         .lines()
         .map(|line| {
-            let (first, last) = extractor.process(line)?;
+            let (first, last) = Part2Extractor::process(line)?;
             Ok(first * 10 + last)
         })
         .collect::<Result<Vec<_>>>()?;
@@ -97,7 +91,7 @@ mod tests {
     #[test]
     fn part2_extractor_works() {
         let data = "6twodndmhcgxlgbqbqndbbthnngblfgtzh5fouroneightrjp";
-        let (first, last) = Part2Extractor::new().process(data).unwrap();
+        let (first, last) = Part2Extractor::process(data).unwrap();
         assert_eq!((first, last), (6, 8));
     }
 }
