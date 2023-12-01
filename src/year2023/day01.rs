@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
+use lazy_static::lazy_static;
 
 use crate::challenge::ChallengeDay;
 
@@ -34,6 +35,10 @@ const DIGITS: [&str; 9] = [
     "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
 ];
 
+lazy_static! {
+    static ref DIGITS_CHARS: [Vec<char>; 9] = DIGITS.map(|s| s.chars().collect_vec());
+}
+
 struct Part2Extractor {}
 impl Part2Extractor {
     fn get_digit(chars: &[char], pos: usize) -> Option<u32> {
@@ -41,14 +46,29 @@ impl Part2Extractor {
         if c.is_ascii_digit() {
             Some(c.to_digit(10).unwrap())
         } else {
-            for (i, digit) in DIGITS.iter().enumerate() {
-                let substr: String = chars.iter().skip(pos).take(digit.len()).collect();
-                if substr == *digit {
+            for (i, digit) in DIGITS_CHARS.iter().enumerate() {
+                if Self::slice_eq(chars, pos, digit) {
                     return Some(i as u32 + 1);
                 }
             }
             None
         }
+    }
+
+    fn slice_eq<T>(slice: &[T], pos: usize, other: &[T]) -> bool
+    where
+        T: Eq,
+    {
+        let len = other.len();
+        if slice.len() < pos + len {
+            return false;
+        }
+        for i in 0..len {
+            if slice[pos + i] != other[i] {
+                return false;
+            }
+        }
+        true
     }
 
     fn process(s: &str) -> Result<(u32, u32)> {
