@@ -36,7 +36,7 @@ const DIGITS: [&str; 9] = [
 
 struct Part2Extractor {}
 impl Part2Extractor {
-    fn get_digit(chars: &Vec<char>, pos: usize) -> Option<u32> {
+    fn get_digit(chars: &[char], pos: usize) -> Option<u32> {
         let c = chars[pos];
         if c.is_ascii_digit() {
             Some(c.to_digit(10).unwrap())
