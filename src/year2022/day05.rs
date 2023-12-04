@@ -1,3 +1,4 @@
+#![allow(dead_code)] // todo remove
 use std::str::FromStr;
 
 use anyhow::{anyhow, Context, Result};
@@ -48,7 +49,7 @@ impl Stacks {
 
 fn part1(data: &str) -> Result<String> {
     let lines = data.lines().collect_vec();
-    let (start, moves) = lines
+    let (_start, moves) = lines
         .split(|line| line.is_empty())
         .collect_tuple()
         .ok_or(anyhow!("Could not split"))?;
@@ -56,7 +57,7 @@ fn part1(data: &str) -> Result<String> {
     // todo fix this line:
     // Stacks::from_lines(start.iter().map(|s| s.to_owned()).collect());
 
-    let moves = moves
+    let _moves = moves
         .iter()
         .map(|line| {
             line.parse::<Move>()
