@@ -1,7 +1,10 @@
-use crate::input::read_data_file;
-use anyhow::{anyhow, Result};
 use std::ffi::OsStr;
+
+use anyhow::{anyhow, Result};
+use chrono::NaiveDate;
 use strum_macros::EnumIter;
+
+use crate::input::read_data_file;
 
 pub type PartSolutions<T> = (T, Option<T>);
 pub type PartSolver<T> = fn(&str) -> Result<T>;
@@ -66,6 +69,24 @@ pub struct SourceFileLocation {
     pub stem: String,
 }
 
+impl SourceFileLocation {
+    pub fn date(&self) -> NaiveDate {
+        let year = self
+            .dir
+            .strip_prefix("year")
+            .unwrap()
+            .parse::<i32>()
+            .unwrap();
+        let day = self
+            .stem
+            .strip_prefix("day")
+            .unwrap()
+            .parse::<u32>()
+            .unwrap();
+        NaiveDate::from_ymd_opt(year, 12, day).unwrap()
+    }
+}
+
 #[derive(Debug, EnumIter, strum_macros::Display, Copy, Clone)]
 #[strum(serialize_all = "lowercase")]
 pub enum Part {
@@ -78,6 +99,17 @@ pub enum ChallengeDayType {
     I32(ChallengeDay<i32>),
     U32(ChallengeDay<u32>),
     String(ChallengeDay<String>),
+}
+
+impl ChallengeDayType {
+    pub fn source_file_location(&self) -> Result<SourceFileLocation> {
+        use ChallengeDayType::*;
+        match self {
+            I32(day) => day.source_file_location(),
+            U32(day) => day.source_file_location(),
+            String(day) => day.source_file_location(),
+        }
+    }
 }
 
 impl From<ChallengeDay<i32>> for ChallengeDayType {

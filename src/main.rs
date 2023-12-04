@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use std::fmt::Debug;
 use std::time::{Duration, Instant};
 
@@ -13,6 +14,11 @@ use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
 struct Args {
+    #[arg(long)]
+    year: Option<i32>,
+    #[arg(long)]
+    day: Option<u32>,
+
     /// Whether only the latest days should be checked (default: all available days)
     #[arg(long)]
     only_latest: bool,
@@ -24,10 +30,30 @@ struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
+    let mut days = all_challenge_days();
+
+    days = days
+        .into_iter()
+        .filter(|day| {
+            let date = day.source_file_location().unwrap().date();
+            if let Some(year) = args.year {
+                if date.year() != year {
+                    return false;
+                }
+            }
+            if let Some(day) = args.day {
+                if date.day() != day {
+                    return false;
+                }
+            }
+            true
+        })
+        .collect_vec();
+
     let challenge_days = if !args.only_latest {
-        all_challenge_days()
+        days
     } else {
-        all_challenge_days().into_iter().rev().take(1).collect_vec()
+        days.into_iter().rev().take(1).collect_vec()
     };
     for ref day in challenge_days {
         match day {
