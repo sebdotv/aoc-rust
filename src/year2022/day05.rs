@@ -6,10 +6,10 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use strum_macros::Display;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<String> {
-    ChallengeDay {
+pub fn day() -> Day<String> {
+    Day {
         part1_solutions: ("CMZ".to_owned(), Some("MQTPGLLDN".to_owned())),
         part2_solutions: Some(("MCD".to_owned(), Some("LVZPSTTCZ".to_owned()))),
         part1_solver: part1,
@@ -67,9 +67,9 @@ impl Stacks {
 fn part1(data: &str) -> Result<String> {
     let (mut stacks, moves) = parse(data)?;
 
-    moves.iter().for_each(|op| {
+    for op in &moves {
         stacks.apply_part1(op);
-    });
+    }
 
     Ok(stacks.top())
 }
@@ -88,7 +88,7 @@ fn parse(data: &str) -> Result<(Stacks, Vec<Move>)> {
         .iter()
         .map(|line| {
             line.parse::<Move>()
-                .with_context(|| format!("Could not parse {}", line))
+                .with_context(|| format!("Could not parse {line}"))
         })
         .collect::<Result<Vec<_>>>()?;
 
@@ -98,9 +98,9 @@ fn parse(data: &str) -> Result<(Stacks, Vec<Move>)> {
 fn part2(data: &str) -> Result<String> {
     let (mut stacks, moves) = parse(data)?;
 
-    moves.iter().for_each(|op| {
+    for op in &moves {
         stacks.apply_part2(op);
-    });
+    }
 
     Ok(stacks.top())
 }

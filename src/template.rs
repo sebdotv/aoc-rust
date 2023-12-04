@@ -1,9 +1,9 @@
 use anyhow::Result;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<i32> {
-    ChallengeDay {
+pub fn day() -> Day<i32> {
+    Day {
         part1_solutions: (todo!(), None),
         part2_solutions: None,
         part1_solver: part1,

@@ -22,3 +22,9 @@ criterion = "0.5.1"
 [[bench]]
 name = "bench"
 harness = false
+
+[lints.clippy]
+pedantic = { level = "warn", priority = 0 }
+enum_glob_use = { level = "allow", priority = 1 } # part of pedantic
+missing_errors_doc = { level = "allow", priority = 1 } # part of pedantic
+unreadable_literal = { level = "allow", priority = 1 } # part of pedantic

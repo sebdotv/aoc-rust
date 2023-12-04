@@ -2,10 +2,10 @@ use anyhow::Result;
 use anyhow::{anyhow, Context};
 use itertools::Itertools;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (24000, Some(70613)),
         part2_solutions: Some((45000, Some(205805))),
         part1_solver: part1,
@@ -37,7 +37,7 @@ fn get_groups(data: &str) -> Result<Vec<u32>> {
                 .iter()
                 .map(|line| {
                     line.parse::<u32>()
-                        .with_context(|| format!("Could not parse {}", line))
+                        .with_context(|| format!("Could not parse {line}"))
                 })
                 .collect::<Result<Vec<_>>>()
         })

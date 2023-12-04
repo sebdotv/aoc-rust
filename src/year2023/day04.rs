@@ -6,10 +6,10 @@ use indexmap::IndexSet;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (13, Some(27845)),
         part2_solutions: Some((30, Some(9496801))),
         part1_solver: part1,
@@ -95,6 +95,6 @@ fn part2(data: &str) -> Result<u32> {
             *v += instances;
         }
     }
-    let count = cards.len() as u32 + copies.iter().sum::<u32>();
+    let count = u32::try_from(cards.len())? + copies.iter().sum::<u32>();
     Ok(count)
 }

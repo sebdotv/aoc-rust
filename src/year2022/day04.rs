@@ -2,10 +2,10 @@ use std::ops::Range;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (2, Some(569)),
         part2_solutions: Some((4, Some(936))),
         part1_solver: part1,
@@ -21,7 +21,7 @@ fn part1(data: &str) -> Result<u32> {
         .iter()
         .filter(|(e1, e2)| fully_contains(e1, e2) || fully_contains(e2, e1))
         .count();
-    Ok(full_overlaps as u32)
+    Ok(u32::try_from(full_overlaps)?)
 }
 
 fn parse_assignments(data: &str) -> Result<Vec<(Range<u32>, Range<u32>)>> {
@@ -39,7 +39,7 @@ fn parse_assignments(data: &str) -> Result<Vec<(Range<u32>, Range<u32>)>> {
 fn parse_range(s: &str) -> Result<Range<u32>> {
     let parse_u32 = |s: &str| {
         s.parse::<u32>()
-            .with_context(|| format!("Could not parse value {}", s))
+            .with_context(|| format!("Could not parse value {s}"))
     };
     let (from, to) = s.split_once('-').ok_or(anyhow!("Could not split range"))?;
     Ok(parse_u32(from)?..parse_u32(to)?)
@@ -58,5 +58,5 @@ fn part2(data: &str) -> Result<u32> {
         .iter()
         .filter(|(e1, e2)| overlaps(e1, e2) || overlaps(e2, e1))
         .count();
-    Ok(full_overlaps as u32)
+    Ok(u32::try_from(full_overlaps)?)
 }

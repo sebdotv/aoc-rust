@@ -1,4 +1,4 @@
-use crate::challenge::ChallengeDayType;
+use crate::challenge::DayWrapper;
 use itertools::Itertools;
 
 pub mod challenge;
@@ -10,7 +10,8 @@ mod template;
 pub mod year2022;
 pub mod year2023;
 
-pub fn all_challenge_days() -> Vec<ChallengeDayType> {
+#[must_use]
+pub fn all_challenge_days() -> Vec<DayWrapper> {
     vec![year2022::challenge_days(), year2023::challenge_days()]
         .into_iter()
         .flatten()

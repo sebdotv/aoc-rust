@@ -5,10 +5,10 @@ use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (8, Some(2416)),
         part2_solutions: Some((2286, Some(63307))),
         part1_solver: part1,

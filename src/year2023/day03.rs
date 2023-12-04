@@ -1,15 +1,15 @@
 use std::ops::Range;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (4361, Some(544433)),
         part2_solutions: Some((467835, Some(76314915))),
         part1_solver: part1,
@@ -31,9 +31,11 @@ fn part1(data: &str) -> Result<u32> {
         })
         .collect::<IndexSet<_>>();
 
-    let get_number = |loc: &NumberLocation| -> u32 {
+    let get_number = |loc: &NumberLocation| -> Result<u32> {
         let (x_range, y) = loc;
-        lines[*y][x_range.clone()].parse::<u32>().unwrap()
+        lines[*y][x_range.clone()]
+            .parse::<u32>()
+            .with_context(|| format!("Could not parse number at {loc:?}"))
     };
 
     let part_numbers = find_numbers(&lines)
@@ -44,7 +46,7 @@ fn part1(data: &str) -> Result<u32> {
                 .any(|x| grid.neighbors(x, *y).iter().any(|p| symbols.contains(p)))
         })
         .map(get_number)
-        .collect_vec();
+        .collect::<Result<Vec<_>>>()?;
 
     let sum = part_numbers.iter().sum();
 
@@ -82,9 +84,16 @@ impl<T> Grid<T> {
             .flat_map(|dx| {
                 (-1..=1isize).filter_map(move |dy| {
                     if dx != 0 || dy != 0 {
-                        let (x, y) = (x as isize + dx, y as isize + dy);
-                        if x >= 0 && y >= 0 && x < self.w as isize && y < self.h as isize {
-                            Some((x as usize, y as usize))
+                        let (x, y) = (
+                            isize::try_from(x).unwrap() + dx,
+                            isize::try_from(y).unwrap() + dy,
+                        );
+                        if x >= 0
+                            && y >= 0
+                            && x < isize::try_from(self.w).unwrap()
+                            && y < isize::try_from(self.h).unwrap()
+                        {
+                            Some((usize::try_from(x).unwrap(), usize::try_from(y).unwrap()))
                         } else {
                             None
                         }
@@ -120,9 +129,11 @@ fn part2(data: &str) -> Result<u32> {
 
     let grid = Grid::from_lines(&lines);
 
-    let get_number = |loc: &NumberLocation| -> u32 {
+    let get_number = |loc: &NumberLocation| -> Result<u32> {
         let (x_range, y) = loc;
-        lines[*y][x_range.clone()].parse::<u32>().unwrap()
+        lines[*y][x_range.clone()]
+            .parse::<u32>()
+            .with_context(|| format!("Could not parse number at {loc:?}"))
     };
 
     let numbers = find_numbers(&lines);
@@ -156,7 +167,9 @@ fn part2(data: &str) -> Result<u32> {
     let sum = gear_candidates
         .iter()
         .filter_map(|(_, locs)| locs.iter().collect_tuple::<(_, _)>())
-        .map(|(loc1, loc2)| get_number(loc1) * get_number(loc2))
+        .map(|(loc1, loc2)| Ok(get_number(loc1)? * get_number(loc2)?))
+        .collect::<Result<Vec<_>>>()?
+        .iter()
         .sum();
 
     Ok(sum)

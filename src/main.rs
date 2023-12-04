@@ -9,7 +9,7 @@ use itertools::Itertools;
 use strum::IntoEnumIterator;
 
 use aoc_rust::all_challenge_days;
-use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
+use aoc_rust::challenge::{Day, DayWrapper, Part};
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -35,7 +35,7 @@ fn main() -> Result<()> {
     days = days
         .into_iter()
         .filter(|day| {
-            let date = day.source_file_location().unwrap().date();
+            let date = day.source_file_location().unwrap().date().unwrap();
             if let Some(year) = args.year {
                 if date.year() != year {
                     return false;
@@ -50,34 +50,34 @@ fn main() -> Result<()> {
         })
         .collect_vec();
 
-    let challenge_days = if !args.only_latest {
-        days
-    } else {
+    let challenge_days = if args.only_latest {
         days.into_iter().rev().take(1).collect_vec()
+    } else {
+        days
     };
     for ref day in challenge_days {
         match day {
-            ChallengeDayType::I32(day) => check_day(day, args.only_example)?,
-            ChallengeDayType::U32(day) => check_day(day, args.only_example)?,
-            ChallengeDayType::String(day) => check_day(day, args.only_example)?,
+            DayWrapper::I32(day) => check_day(day, args.only_example)?,
+            DayWrapper::U32(day) => check_day(day, args.only_example)?,
+            DayWrapper::String(day) => check_day(day, args.only_example)?,
         }
     }
     Ok(())
 }
 
-fn check_day<T>(day: &ChallengeDay<T>, only_example: bool) -> Result<()>
+fn check_day<T>(day: &Day<T>, only_example: bool) -> Result<()>
 where
     T: Eq + Debug,
 {
-    let example_data = if !day.distinct_examples {
-        Some(day.read_data_file("example")?)
-    } else {
+    let example_data = if day.distinct_examples {
         None
+    } else {
+        Some(day.read_data_file("example")?)
     };
     let input_data = day.read_data_file("input")?;
-    for ref part in Part::iter() {
+    for part in Part::iter() {
         let part_example_data = if example_data.is_none() {
-            let file_name = format!("example{}", *part as u8);
+            let file_name = format!("example{}", part as u8);
             Some(day.read_data_file(file_name.as_str())?)
         } else {
             None
@@ -98,8 +98,8 @@ where
 }
 
 fn check_part<T>(
-    day: &ChallengeDay<T>,
-    part: &Part,
+    day: &Day<T>,
+    part: Part,
     example_data: &str,
     input_data: &str,
     only_example: bool,
@@ -128,7 +128,7 @@ where
     Ok(())
 }
 
-fn solve_and_measure<T>(day: &ChallengeDay<T>, part: &Part, data: &str) -> Result<(T, Duration)> {
+fn solve_and_measure<T>(day: &Day<T>, part: Part, data: &str) -> Result<(T, Duration)> {
     let solver = day.get_solver(part);
     let start = Instant::now();
     let value = solver(data)?;
@@ -137,8 +137,8 @@ fn solve_and_measure<T>(day: &ChallengeDay<T>, part: &Part, data: &str) -> Resul
 }
 
 fn check_value<T>(
-    day: &ChallengeDay<T>,
-    part: &Part,
+    day: &Day<T>,
+    part: Part,
     label: &str,
     expected: Option<&T>,
     actual_result: (T, Duration),
@@ -159,8 +159,8 @@ fn check_value<T>(
                 "FAIL".red().bold(),
                 format!(
                     "expected {}, got {}",
-                    format!("{:?}", expected).green(),
-                    format!("{:?}", actual).red(),
+                    format!("{expected:?}").green(),
+                    format!("{actual:?}").red(),
                 ),
             )
         }
@@ -170,9 +170,15 @@ fn check_value<T>(
             format!(
                 "{} {} (not checked)",
                 duration_str(),
-                format!("{:?}", actual).cyan().bold(),
+                format!("{actual:?}").cyan().bold(),
             ),
         )
     };
-    println!("{} {} {} [{}]", status, day.label(part), label, details);
+    println!(
+        "{} {} {} [{}]",
+        status,
+        day.label(part).unwrap(),
+        label,
+        details
+    );
 }

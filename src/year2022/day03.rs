@@ -2,10 +2,10 @@ use anyhow::{anyhow, Result};
 use indexmap::IndexSet;
 use itertools::Itertools;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (157, Some(7875)),
         part2_solutions: Some((70, Some(2479))),
         part1_solver: part1,
@@ -29,7 +29,7 @@ fn part1(data: &str) -> Result<u32> {
             }
         })
         .collect::<Result<Vec<_>>>()?;
-    total_priority(dupes)
+    total_priority(&dupes)
 }
 
 fn part2(data: &str) -> Result<u32> {
@@ -49,10 +49,10 @@ fn part2(data: &str) -> Result<u32> {
             Ok(*common_char)
         })
         .collect::<Result<Vec<char>>>()?;
-    total_priority(commons)
+    total_priority(&commons)
 }
 
-fn total_priority(chars: Vec<char>) -> Result<u32> {
+fn total_priority(chars: &[char]) -> Result<u32> {
     let priorities = chars
         .iter()
         .map(|c| match c {

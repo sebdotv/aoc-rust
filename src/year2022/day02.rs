@@ -1,10 +1,10 @@
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 use anyhow::{anyhow, Result};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (15, Some(11386)),
         part2_solutions: Some((12, Some(13600))),
         part1_solver: part1,
@@ -56,7 +56,7 @@ fn part2(data: &str) -> Result<u32> {
             _ => return Err(anyhow!("invalid outcome")),
         };
         let own = Shape::iter()
-            .find(|own| own.outcome_vs(&opponent) == outcome)
+            .find(|own| own.outcome_vs(opponent) == outcome)
             .ok_or(anyhow!("could not find own move"))?;
         Ok((opponent, own))
     };
@@ -103,7 +103,7 @@ impl Round {
 }
 
 impl Shape {
-    fn outcome_vs(&self, other: &Shape) -> Outcome {
+    fn outcome_vs(self, other: Shape) -> Outcome {
         use Outcome::*;
         use Shape::*;
         match (self, other) {
@@ -125,12 +125,12 @@ impl Game {
             .iter()
             .map(|(opponent, own)| Round {
                 own: *own,
-                outcome: own.outcome_vs(opponent),
+                outcome: own.outcome_vs(*opponent),
             })
             .collect()
     }
 
     fn score(&self) -> u32 {
-        self.play().iter().map(|round| round.score()).sum()
+        self.play().iter().map(Round::score).sum()
     }
 }

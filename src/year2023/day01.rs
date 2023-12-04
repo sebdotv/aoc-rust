@@ -2,10 +2,10 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
-use crate::challenge::ChallengeDay;
+use crate::challenge::Day;
 
-pub fn day() -> ChallengeDay<u32> {
-    ChallengeDay {
+pub fn day() -> Day<u32> {
+    Day {
         part1_solutions: (142, Some(54390)),
         part2_solutions: Some((281, Some(54277))),
         part1_solver: part1,
@@ -48,7 +48,7 @@ impl Part2Extractor {
         } else {
             for (i, digit) in DIGITS_CHARS.iter().enumerate() {
                 if Self::slice_eq(chars, pos, digit) {
-                    return Some(i as u32 + 1);
+                    return Some(u32::try_from(i).unwrap() + 1);
                 }
             }
             None
@@ -99,7 +99,7 @@ fn first_digit<I>(mut chars: I) -> Option<u32>
 where
     I: Iterator<Item = char>,
 {
-    let char = chars.find(|c| c.is_ascii_digit())?;
+    let char = chars.find(char::is_ascii_digit)?;
     let digit = char.to_digit(10).expect("unexpected");
     Some(digit)
 }

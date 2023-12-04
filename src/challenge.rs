@@ -10,7 +10,7 @@ pub type PartSolutions<T> = (T, Option<T>);
 pub type PartSolver<T> = fn(&str) -> Result<T>;
 
 #[derive(Debug)]
-pub struct ChallengeDay<T> {
+pub struct Day<T> {
     pub part1_solutions: PartSolutions<T>,
     pub part2_solutions: Option<PartSolutions<T>>,
     pub part1_solver: PartSolver<T>,
@@ -19,31 +19,31 @@ pub struct ChallengeDay<T> {
     pub distinct_examples: bool,
 }
 
-impl<T> ChallengeDay<T> {
-    pub fn solutions(&self, part: &Part) -> Option<&PartSolutions<T>> {
+impl<T> Day<T> {
+    pub fn solutions(&self, part: Part) -> Option<&PartSolutions<T>> {
         match part {
             Part::Part1 => Some(&self.part1_solutions),
             Part::Part2 => self.part2_solutions.as_ref(),
         }
     }
 
-    pub fn get_solver(&self, part: &Part) -> PartSolver<T> {
+    pub fn get_solver(&self, part: Part) -> PartSolver<T> {
         match part {
             Part::Part1 => self.part1_solver,
             Part::Part2 => self.part2_solver,
         }
     }
 
-    pub fn label(&self, part: &Part) -> String {
-        let loc = self.source_file_location().unwrap();
-        format!("{}::{}::{}", loc.dir, loc.stem, part)
+    pub fn label(&self, part: Part) -> Result<String> {
+        let loc = self.source_file_location()?;
+        Ok(format!("{}::{}::{}", loc.dir, loc.stem, part))
     }
 
     fn source_file_location(&self) -> Result<SourceFileLocation> {
         let to_str = |s: &OsStr| {
             s.to_str()
                 .ok_or(anyhow!("Could not convert OsStr to string"))
-                .map(|s| s.to_owned())
+                .map(ToOwned::to_owned)
         };
         let path = std::path::Path::new(&self.source_file);
         let dir = path
@@ -70,20 +70,19 @@ pub struct SourceFileLocation {
 }
 
 impl SourceFileLocation {
-    pub fn date(&self) -> NaiveDate {
+    pub fn date(&self) -> Result<NaiveDate> {
         let year = self
             .dir
             .strip_prefix("year")
-            .unwrap()
-            .parse::<i32>()
-            .unwrap();
+            .ok_or(anyhow!("Could not strip prefix"))?
+            .parse::<i32>()?;
         let day = self
             .stem
             .strip_prefix("day")
-            .unwrap()
-            .parse::<u32>()
-            .unwrap();
-        NaiveDate::from_ymd_opt(year, 12, day).unwrap()
+            .ok_or(anyhow!("Could not strip prefix"))?
+            .parse::<u32>()?;
+        NaiveDate::from_ymd_opt(year, 12, day)
+            .ok_or(anyhow!("Could not create date from components"))
     }
 }
 
@@ -95,15 +94,15 @@ pub enum Part {
 }
 
 #[derive(Debug)]
-pub enum ChallengeDayType {
-    I32(ChallengeDay<i32>),
-    U32(ChallengeDay<u32>),
-    String(ChallengeDay<String>),
+pub enum DayWrapper {
+    I32(Day<i32>),
+    U32(Day<u32>),
+    String(Day<String>),
 }
 
-impl ChallengeDayType {
+impl DayWrapper {
     pub fn source_file_location(&self) -> Result<SourceFileLocation> {
-        use ChallengeDayType::*;
+        use DayWrapper::*;
         match self {
             I32(day) => day.source_file_location(),
             U32(day) => day.source_file_location(),
@@ -112,18 +111,18 @@ impl ChallengeDayType {
     }
 }
 
-impl From<ChallengeDay<i32>> for ChallengeDayType {
-    fn from(day: ChallengeDay<i32>) -> Self {
-        ChallengeDayType::I32(day)
+impl From<Day<i32>> for DayWrapper {
+    fn from(day: Day<i32>) -> Self {
+        DayWrapper::I32(day)
     }
 }
-impl From<ChallengeDay<u32>> for ChallengeDayType {
-    fn from(day: ChallengeDay<u32>) -> Self {
-        ChallengeDayType::U32(day)
+impl From<Day<u32>> for DayWrapper {
+    fn from(day: Day<u32>) -> Self {
+        DayWrapper::U32(day)
     }
 }
-impl From<ChallengeDay<String>> for ChallengeDayType {
-    fn from(day: ChallengeDay<String>) -> Self {
-        ChallengeDayType::String(day)
+impl From<Day<String>> for DayWrapper {
+    fn from(day: Day<String>) -> Self {
+        DayWrapper::String(day)
     }
 }
