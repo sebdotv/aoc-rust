@@ -2,26 +2,44 @@ use std::fmt::Debug;
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
+use clap::Parser;
 use colored::Colorize;
+use itertools::Itertools;
 use strum::IntoEnumIterator;
 
 use aoc_rust::all_challenge_days;
 use aoc_rust::challenge::{ChallengeDay, ChallengeDayType, Part};
 
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+struct Args {
+    /// Whether only the latest days should be checked (default: all available days)
+    #[arg(long)]
+    only_latest: bool,
+
+    /// Whether only the examples should be checked
+    #[arg(long)]
+    only_example: bool,
+}
 fn main() -> Result<()> {
-    let challenge_days = all_challenge_days();
-    // let challenge_days = challenge_days.iter().rev().take(1);
+    let args = Args::parse();
+
+    let challenge_days = if !args.only_latest {
+        all_challenge_days()
+    } else {
+        all_challenge_days().into_iter().rev().take(1).collect_vec()
+    };
     for ref day in challenge_days {
         match day {
-            ChallengeDayType::I32(day) => check_day(day)?,
-            ChallengeDayType::U32(day) => check_day(day)?,
-            ChallengeDayType::String(day) => check_day(day)?,
+            ChallengeDayType::I32(day) => check_day(day, args.only_example)?,
+            ChallengeDayType::U32(day) => check_day(day, args.only_example)?,
+            ChallengeDayType::String(day) => check_day(day, args.only_example)?,
         }
     }
     Ok(())
 }
 
-fn check_day<T>(day: &ChallengeDay<T>) -> Result<()>
+fn check_day<T>(day: &ChallengeDay<T>, only_example: bool) -> Result<()>
 where
     T: Eq + Debug,
 {
@@ -47,6 +65,7 @@ where
                 .unwrap()
                 .as_str(),
             &input_data,
+            only_example,
         )?;
     }
     Ok(())
@@ -57,6 +76,7 @@ fn check_part<T>(
     part: &Part,
     example_data: &str,
     input_data: &str,
+    only_example: bool,
 ) -> Result<()>
 where
     T: Eq + Debug,
@@ -69,13 +89,15 @@ where
             Some(example_solution),
             solve_and_measure(day, part, example_data)?,
         );
-        check_value(
-            day,
-            part,
-            "input",
-            input_solution.as_ref(),
-            solve_and_measure(day, part, input_data)?,
-        );
+        if !only_example {
+            check_value(
+                day,
+                part,
+                "input",
+                input_solution.as_ref(),
+                solve_and_measure(day, part, input_data)?,
+            );
+        }
     }
     Ok(())
 }
