@@ -11,7 +11,7 @@ use crate::challenge::ChallengeDay;
 pub fn day() -> ChallengeDay<u32> {
     ChallengeDay {
         part1_solutions: (13, Some(27845)),
-        part2_solutions: Some((30, None)),
+        part2_solutions: Some((30, Some(9496801))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -28,8 +28,11 @@ fn part1(data: &str) -> Result<u32> {
         .iter()
         .map(|card| {
             let count = card.count_winning();
-            let points = if count == 0 { 0 } else { 1 << (count - 1) };
-            points
+            if count == 0 {
+                0
+            } else {
+                1 << (count - 1)
+            }
         })
         .sum();
     Ok(sum)
@@ -88,13 +91,8 @@ fn part2(data: &str) -> Result<u32> {
     for (i, card) in cards.iter().enumerate() {
         let winning = card.count_winning();
         let instances = 1 + copies[i];
-        // println!(
-        //     "processing card {}: winning={}, instances={}",
-        //     card._id, winning, instances
-        // );
-        for (j, v) in copies.iter_mut().skip(i + 1).take(winning).enumerate() {
+        for v in copies.iter_mut().skip(i + 1).take(winning) {
             *v += instances;
-            // println!("  added {} copies to card {}", instances, cards[j]._id);
         }
     }
     let count = cards.len() as u32 + copies.iter().sum::<u32>();
