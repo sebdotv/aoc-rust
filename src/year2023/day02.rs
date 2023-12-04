@@ -10,7 +10,7 @@ use crate::challenge::ChallengeDay;
 pub fn day() -> ChallengeDay<u32> {
     ChallengeDay {
         part1_solutions: (8, Some(2416)),
-        part2_solutions: None,
+        part2_solutions: Some((2286, Some(63307))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -30,13 +30,31 @@ fn part1(data: &str) -> Result<u32> {
                 .iter()
                 .all(|reveal| reveal.red <= 12 && reveal.green <= 13 && reveal.blue <= 14)
         })
-        .map(|game| game._id)
+        .map(|game| game.id)
         .sum();
     Ok(sum)
 }
 
-fn part2(_data: &str) -> Result<u32> {
-    todo!()
+fn part2(data: &str) -> Result<u32> {
+    let games = data
+        .lines()
+        .map(str::parse::<Game>)
+        .collect::<Result<Vec<_>>>()?;
+
+    let minimum_set = |game: &Game| -> SetOfCubes {
+        let max = |f: &dyn Fn(&SetOfCubes) -> u32| game.reveals.iter().map(f).max().unwrap();
+        let red = max(&|r: &SetOfCubes| r.red);
+        let green = max(&|r: &SetOfCubes| r.green);
+        let blue = max(&|r: &SetOfCubes| r.blue);
+        SetOfCubes { red, green, blue }
+    };
+
+    let sum = games
+        .iter()
+        .map(minimum_set)
+        .map(|set| set.red * set.green * set.blue)
+        .sum();
+    Ok(sum)
 }
 
 lazy_static! {
@@ -45,14 +63,14 @@ lazy_static! {
 
 #[derive(Debug)]
 struct Game {
-    _id: u32,
+    id: u32,
     reveals: Vec<SetOfCubes>,
 }
 #[derive(Debug, Default)]
 struct SetOfCubes {
-    red: u8,
-    green: u8,
-    blue: u8,
+    red: u32,
+    green: u32,
+    blue: u32,
 }
 impl Add for SetOfCubes {
     type Output = Self;
@@ -83,7 +101,7 @@ impl FromStr for Game {
             .split("; ")
             .map(str::parse::<SetOfCubes>)
             .collect::<Result<Vec<_>>>()?;
-        Ok(Game { _id: id, reveals })
+        Ok(Game { id, reveals })
     }
 }
 
@@ -92,7 +110,7 @@ impl FromStr for SetOfCubes {
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let parse_u8 = |s: &str| {
-            s.parse::<u8>()
+            s.parse::<u32>()
                 .map_err(|_| anyhow!("number parse error for `{}`", s))
         };
         let sets = s
