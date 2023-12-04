@@ -1,4 +1,3 @@
-#![allow(dead_code)] // todo remove
 use std::str::FromStr;
 
 use anyhow::{anyhow, Context, Result};
@@ -12,7 +11,7 @@ use crate::challenge::ChallengeDay;
 pub fn day() -> ChallengeDay<String> {
     ChallengeDay {
         part1_solutions: ("CMZ".to_owned(), Some("MQTPGLLDN".to_owned())),
-        part2_solutions: None,
+        part2_solutions: Some(("MCD".to_owned(), Some("LVZPSTTCZ".to_owned()))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -20,26 +19,44 @@ pub fn day() -> ChallengeDay<String> {
     }
 }
 
+#[derive(Debug)]
 struct Stacks {
     stacks: Vec<Vec<char>>,
 }
 
 impl Stacks {
-    fn from_lines(lines: Vec<String>) -> Self {
-        let max_line_len = lines
+    pub fn apply_part1(&mut self, op: &Move) {
+        (0..op.n).for_each(|_| {
+            let c = self.stacks[op.from - 1].pop().unwrap();
+            self.stacks[op.to - 1].push(c);
+        });
+    }
+    pub fn apply_part2(&mut self, op: &Move) {
+        let from = &mut self.stacks[op.from - 1];
+        let tail = from.split_off(from.len() - op.n);
+        self.stacks[op.to - 1].extend(tail);
+    }
+
+    pub fn top(&self) -> String {
+        self.stacks
             .iter()
-            .dropping_back(1)
-            .map(|line| line.len())
-            .max()
-            .unwrap();
+            .map(|stack| stack.last().unwrap())
+            .collect()
+    }
+}
+
+impl Stacks {
+    fn from_lines(lines: &[&str]) -> Self {
+        let lines_iter = || lines.iter().dropping_back(1);
+        let max_line_len = lines_iter().map(|line| line.len()).max().unwrap();
         let n = (max_line_len + 1) / 4;
         assert_eq!((max_line_len + 1) % 4, 0);
         let stacks = (0..n)
             .map(|i| {
-                lines
-                    .iter()
+                lines_iter()
                     .rev()
-                    .map(|line| line.chars().nth(i * 4 + 1).unwrap())
+                    .filter_map(|line| line.chars().nth(i * 4 + 1))
+                    .filter(|&c| c != ' ')
                     .collect()
             })
             .collect();
@@ -48,16 +65,26 @@ impl Stacks {
 }
 
 fn part1(data: &str) -> Result<String> {
+    let (mut stacks, moves) = parse(data)?;
+
+    moves.iter().for_each(|op| {
+        stacks.apply_part1(op);
+    });
+
+    Ok(stacks.top())
+}
+
+fn parse(data: &str) -> Result<(Stacks, Vec<Move>)> {
     let lines = data.lines().collect_vec();
-    let (_start, moves) = lines
+
+    let (start, moves) = lines
         .split(|line| line.is_empty())
         .collect_tuple()
         .ok_or(anyhow!("Could not split"))?;
 
-    // todo fix this line:
-    // Stacks::from_lines(start.iter().map(|s| s.to_owned()).collect());
+    let stacks = Stacks::from_lines(start);
 
-    let _moves = moves
+    let moves = moves
         .iter()
         .map(|line| {
             line.parse::<Move>()
@@ -65,22 +92,24 @@ fn part1(data: &str) -> Result<String> {
         })
         .collect::<Result<Vec<_>>>()?;
 
-    // moves.iter().for_each(|op| {
-    //     println!("{:?}", op);
-    // });
-
-    Ok("todo".to_owned())
+    Ok((stacks, moves))
 }
 
-fn part2(_data: &str) -> Result<String> {
-    todo!()
+fn part2(data: &str) -> Result<String> {
+    let (mut stacks, moves) = parse(data)?;
+
+    moves.iter().for_each(|op| {
+        stacks.apply_part2(op);
+    });
+
+    Ok(stacks.top())
 }
 
 #[derive(Debug, PartialEq, Eq)]
 struct Move {
-    n: u8,
-    from: u8,
-    to: u8,
+    n: usize,
+    from: usize,
+    to: usize,
 }
 
 lazy_static! {
@@ -99,11 +128,14 @@ impl FromStr for Move {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let caps = MOVE_RE.captures(s).ok_or(ParseMoveError::InvalidMove)?;
         let (_, [n, from, to]) = caps.extract();
-        let parse_u8 = |s: &str| s.parse::<u8>().map_err(|_| ParseMoveError::ParseIntError);
+        let parse_usize = |s: &str| {
+            s.parse::<usize>()
+                .map_err(|_| ParseMoveError::ParseIntError)
+        };
         Ok(Move {
-            n: parse_u8(n)?,
-            from: parse_u8(from)?,
-            to: parse_u8(to)?,
+            n: parse_usize(n)?,
+            from: parse_usize(from)?,
+            to: parse_usize(to)?,
         })
     }
 }
@@ -126,7 +158,7 @@ mod tests {
         s.parse::<Move>()
     }
 
-    fn new_move(n: u8, from: u8, to: u8) -> Move {
+    fn new_move(n: usize, from: usize, to: usize) -> Move {
         Move { n, from, to }
     }
 }
