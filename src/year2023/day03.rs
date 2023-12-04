@@ -1,16 +1,17 @@
+use std::ops::Range;
+
 use anyhow::Result;
-use indexmap::IndexSet;
+use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::ops::Range;
 
 use crate::challenge::ChallengeDay;
 
 pub fn day() -> ChallengeDay<u32> {
     ChallengeDay {
         part1_solutions: (4361, Some(544433)),
-        part2_solutions: None,
+        part2_solutions: Some((467835, Some(76314915))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -30,6 +31,11 @@ fn part1(data: &str) -> Result<u32> {
         })
         .collect::<IndexSet<_>>();
 
+    let get_number = |loc: &NumberLocation| -> u32 {
+        let (x_range, y) = loc;
+        lines[*y][x_range.clone()].parse::<u32>().unwrap()
+    };
+
     let part_numbers = find_numbers(&lines)
         .iter()
         .filter(|(x_range, y)| {
@@ -37,7 +43,7 @@ fn part1(data: &str) -> Result<u32> {
                 .clone()
                 .any(|x| grid.neighbors(x, *y).iter().any(|p| symbols.contains(p)))
         })
-        .map(|(x_range, y)| lines[*y][x_range.clone()].parse::<u32>().unwrap())
+        .map(get_number)
         .collect_vec();
 
     let sum = part_numbers.iter().sum();
@@ -95,7 +101,8 @@ lazy_static! {
     static ref NUMBER_RE: Regex = Regex::new(r"\d+").unwrap();
 }
 
-fn find_numbers(lines: &[&str]) -> Vec<(Range<usize>, usize)> {
+type NumberLocation = (Range<usize>, usize);
+fn find_numbers(lines: &[&str]) -> Vec<NumberLocation> {
     lines
         .iter()
         .enumerate()
@@ -108,6 +115,49 @@ fn find_numbers(lines: &[&str]) -> Vec<(Range<usize>, usize)> {
         .collect()
 }
 
-fn part2(_data: &str) -> Result<u32> {
-    todo!()
+fn part2(data: &str) -> Result<u32> {
+    let lines = data.lines().collect_vec();
+
+    let grid = Grid::from_lines(&lines);
+
+    let get_number = |loc: &NumberLocation| -> u32 {
+        let (x_range, y) = loc;
+        lines[*y][x_range.clone()].parse::<u32>().unwrap()
+    };
+
+    let numbers = find_numbers(&lines);
+
+    let numbers_and_possible_gears = numbers
+        .iter()
+        .flat_map(|loc @ (x_range, y)| {
+            // find all gears that are adjacent to this number
+            x_range
+                .clone()
+                .flat_map(|x| {
+                    let neighbors = grid.neighbors(x, *y);
+                    neighbors
+                        .iter()
+                        .filter(|(x, y)| *grid.get(*x, *y) == '*')
+                        .copied()
+                        .collect_vec()
+                })
+                .map(|gear| (loc, gear))
+                .collect::<IndexSet<_>>()
+        })
+        .collect_vec();
+
+    let mut gear_candidates = IndexMap::new();
+    for (loc, gear) in numbers_and_possible_gears {
+        gear_candidates
+            .entry(gear)
+            .or_insert_with(Vec::new)
+            .push(loc);
+    }
+    let sum = gear_candidates
+        .iter()
+        .filter_map(|(_, locs)| locs.iter().collect_tuple::<(_, _)>())
+        .map(|(loc1, loc2)| get_number(loc1) * get_number(loc2))
+        .sum();
+
+    Ok(sum)
 }
