@@ -19,12 +19,41 @@ pub fn day() -> ChallengeDay<String> {
     }
 }
 
+struct Stacks {
+    stacks: Vec<Vec<char>>,
+}
+
+impl Stacks {
+    fn from_lines(lines: Vec<String>) -> Self {
+        let max_line_len = lines
+            .iter()
+            .dropping_back(1)
+            .map(|line| line.len())
+            .max()
+            .unwrap();
+        let n = (max_line_len + 1) / 4;
+        assert_eq!((max_line_len + 1) % 4, 0);
+        let stacks = (0..n)
+            .map(|i| {
+                lines
+                    .iter()
+                    .rev()
+                    .map(|line| line.chars().nth(i * 4 + 1).unwrap())
+                    .collect()
+            })
+            .collect();
+        Self { stacks }
+    }
+}
+
 fn part1(data: &str) -> Result<String> {
     let lines = data.lines().collect_vec();
-    let (_start, moves) = lines
+    let (start, moves) = lines
         .split(|line| line.is_empty())
         .collect_tuple()
         .ok_or(anyhow!("Could not split"))?;
+
+    Stacks::from_lines(start.iter().map(|s| s.to_owned()).collect());
 
     let moves = moves
         .iter()
@@ -34,9 +63,9 @@ fn part1(data: &str) -> Result<String> {
         })
         .collect::<Result<Vec<_>>>()?;
 
-    moves.iter().for_each(|op| {
-        println!("{:?}", op);
-    });
+    // moves.iter().for_each(|op| {
+    //     println!("{:?}", op);
+    // });
 
     Ok("todo".to_owned())
 }
@@ -79,8 +108,9 @@ impl FromStr for Move {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use ParseMoveError::*;
+
+    use super::*;
 
     #[test]
     fn move_parser_works() {
