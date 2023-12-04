@@ -1,5 +1,6 @@
 use crate::challenge::Day;
 use anyhow::{anyhow, Result};
+use itertools::Itertools;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -33,7 +34,7 @@ fn part1(data: &str) -> Result<u32> {
         Ok((opponent, own))
     };
     let game = Game {
-        moves: data.lines().map(parse).collect::<Result<_>>()?,
+        moves: data.lines().map(parse).try_collect()?,
     };
     Ok(game.score())
 }
@@ -61,7 +62,7 @@ fn part2(data: &str) -> Result<u32> {
         Ok((opponent, own))
     };
     let game = Game {
-        moves: data.lines().map(parse).collect::<Result<_>>()?,
+        moves: data.lines().map(parse).try_collect()?,
     };
     Ok(game.score())
 }

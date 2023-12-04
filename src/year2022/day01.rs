@@ -30,7 +30,7 @@ fn part2(data: &str) -> Result<u32> {
 fn get_groups(data: &str) -> Result<Vec<u32>> {
     let lines = data.lines().collect_vec();
     let groups = lines.split(|line| line.is_empty()).collect_vec();
-    let groups = groups
+    let groups: Vec<Vec<_>> = groups
         .iter()
         .map(|group| {
             group
@@ -39,9 +39,9 @@ fn get_groups(data: &str) -> Result<Vec<u32>> {
                     line.parse::<u32>()
                         .with_context(|| format!("Could not parse {line}"))
                 })
-                .collect::<Result<Vec<_>>>()
+                .try_collect()
         })
-        .collect::<Result<Vec<_>>>()?;
+        .try_collect()?;
     let groups = groups
         .iter()
         .map(|group| group.iter().sum::<u32>())
