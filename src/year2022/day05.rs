@@ -53,7 +53,8 @@ fn part1(data: &str) -> Result<String> {
         .collect_tuple()
         .ok_or(anyhow!("Could not split"))?;
 
-    Stacks::from_lines(start.iter().map(|s| s.to_owned()).collect());
+    // todo fix this line:
+    // Stacks::from_lines(start.iter().map(|s| s.to_owned()).collect());
 
     let moves = moves
         .iter()
