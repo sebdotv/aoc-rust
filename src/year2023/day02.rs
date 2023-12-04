@@ -23,9 +23,6 @@ fn part1(data: &str) -> Result<u32> {
         .lines()
         .map(str::parse::<Game>)
         .collect::<Result<Vec<_>>>()?;
-    for game in &games {
-        println!("{:?}", game);
-    }
     let sum = games
         .iter()
         .filter(|game| {
@@ -44,9 +41,6 @@ fn part2(_data: &str) -> Result<u32> {
 
 lazy_static! {
     static ref GAME_RE: Regex = Regex::new(r"^Game (\d+): (.*)$").unwrap();
-    // static ref SET_RE: Regex =
-    //     Regex::new(r"^((?P<red>\d+) red)?(, ?)((?P<green>\d+) green)?((, ?)(?P<blue>\d+) blue)?$")
-    //         .unwrap();
 }
 
 #[derive(Debug)]
@@ -119,7 +113,7 @@ impl FromStr for SetOfCubes {
                         blue: n,
                         ..Default::default()
                     }),
-                    other => Err(anyhow!("unknown color `{}`", color)),
+                    other => Err(anyhow!("unknown color `{}`", other)),
                 }
             })
             .collect::<Result<Vec<_>>>()?;
