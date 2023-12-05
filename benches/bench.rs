@@ -11,6 +11,7 @@ fn bench_challenge_days(c: &mut Criterion) {
         match day {
             DayWrapper::I32(day) => bench_day(c, &day),
             DayWrapper::U32(day) => bench_day(c, &day),
+            DayWrapper::U64(day) => bench_day(c, &day),
             DayWrapper::String(day) => bench_day(c, &day),
         }
     }

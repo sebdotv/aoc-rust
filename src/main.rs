@@ -23,10 +23,17 @@ struct Args {
     #[arg(long)]
     only_latest: bool,
 
-    /// Whether only the examples should be checked
-    #[arg(long)]
-    only_example: bool,
+    #[arg(long, value_enum)]
+    skip: Option<Skip>,
 }
+
+#[derive(Debug, Copy, Clone, clap::ValueEnum, Eq, PartialEq)]
+#[clap(rename_all = "lowercase")]
+enum Skip {
+    Examples,
+    Inputs,
+}
+
 fn main() -> Result<()> {
     let args = Args::parse();
 
@@ -57,15 +64,16 @@ fn main() -> Result<()> {
     };
     for ref day in challenge_days {
         match day {
-            DayWrapper::I32(day) => check_day(day, args.only_example)?,
-            DayWrapper::U32(day) => check_day(day, args.only_example)?,
-            DayWrapper::String(day) => check_day(day, args.only_example)?,
+            DayWrapper::I32(day) => check_day(day, args.skip)?,
+            DayWrapper::U32(day) => check_day(day, args.skip)?,
+            DayWrapper::U64(day) => check_day(day, args.skip)?,
+            DayWrapper::String(day) => check_day(day, args.skip)?,
         }
     }
     Ok(())
 }
 
-fn check_day<T>(day: &Day<T>, only_example: bool) -> Result<()>
+fn check_day<T>(day: &Day<T>, skip: Option<Skip>) -> Result<()>
 where
     T: Eq + Debug,
 {
@@ -91,7 +99,7 @@ where
                 .unwrap()
                 .as_str(),
             &input_data,
-            only_example,
+            skip,
         )?;
     }
     Ok(())
@@ -102,20 +110,22 @@ fn check_part<T>(
     part: Part,
     example_data: &str,
     input_data: &str,
-    only_example: bool,
+    skip: Option<Skip>,
 ) -> Result<()>
 where
     T: Eq + Debug,
 {
     if let Some((example_solution, input_solution)) = day.solutions(part) {
-        check_value(
-            day,
-            part,
-            "example",
-            Some(example_solution),
-            solve_and_measure(day, part, example_data)?,
-        );
-        if !only_example {
+        if skip != Some(Skip::Examples) {
+            check_value(
+                day,
+                part,
+                "example",
+                Some(example_solution),
+                solve_and_measure(day, part, example_data)?,
+            );
+        }
+        if skip != Some(Skip::Inputs) {
             check_value(
                 day,
                 part,
