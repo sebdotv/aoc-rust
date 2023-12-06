@@ -36,7 +36,7 @@ So, because the first race lasts 7 milliseconds, you only have a few options:
 * Hold the button for *`4` milliseconds*. After its remaining 3 milliseconds of travel time, the boat will have gone *`12` millimeters*.
 * Hold the button for *`5` milliseconds*, causing the boat to travel a total of *`10` millimeters*.
 * Hold the button for *`6` milliseconds*, causing the boat to travel a total of *`6` millimeters*.
-* Hold the button for *`7` milliseconds*. That's the entire duration of the race. You never let go of the button. The boat can't move until you let you of the button. Please make sure you let go of the button so the boat gets to move. *`0` millimeters*.
+* Hold the button for *`7` milliseconds*. That's the entire duration of the race. You never let go of the button. The boat can't move until you let go of the button. Please make sure you let go of the button so the boat gets to move. *`0` millimeters*.
 
 Since the current record for this race is `9` millimeters, there are actually `*4*` different ways you could win: you could hold the button for `2`, `3`, `4`, or `5` milliseconds at the start of the race.
 
@@ -48,8 +48,37 @@ To see how much margin of error you have, determine the *number of ways you can 
 
 Determine the number of ways you could beat the record in each race. *What do you get if you multiply these numbers together?*
 
-To begin, [get your puzzle input](6/input).
+Your puzzle answer was `800280`.
+
+The first half of this puzzle is complete! It provides one gold star: \*
+
+\--- Part Two ---
+----------
+
+As the race is about to start, you realize the piece of paper with race times and record distances you got earlier actually just has very bad [kerning](https://en.wikipedia.org/wiki/Kerning). There's really *only one race* - ignore the spaces between the numbers on each line.
+
+So, the example from before:
+
+```
+Time:      7  15   30
+Distance:  9  40  200
+
+```
+
+...now instead means this:
+
+```
+Time:      71530
+Distance:  940200
+
+```
+
+Now, you have to figure out how many ways there are to win this single race. In this example, the race lasts for *`71530` milliseconds* and the record distance you need to beat is *`940200` millimeters*. You could hold the button anywhere from `14` to `71516` milliseconds and beat the record, a total of `*71503*` ways!
+
+*How many ways can you beat the record in this one much longer race?*
 
 Answer:
 
-You can also [Shareon [Twitter](https://twitter.com/intent/tweet?text=%22Wait+For+It%22+%2D+Day+6+%2D+Advent+of+Code+2023&url=https%3A%2F%2Fadventofcode%2Ecom%2F2023%2Fday%2F6&related=ericwastl&hashtags=AdventOfCode) [Mastodon](javascript:void(0);)] this puzzle.
+Although it hasn't changed, you can still [get your puzzle input](6/input).
+
+You can also [Shareon [Twitter](https://twitter.com/intent/tweet?text=I%27ve+completed+Part+One+of+%22Wait+For+It%22+%2D+Day+6+%2D+Advent+of+Code+2023&url=https%3A%2F%2Fadventofcode%2Ecom%2F2023%2Fday%2F6&related=ericwastl&hashtags=AdventOfCode) [Mastodon](javascript:void(0);)] this puzzle.

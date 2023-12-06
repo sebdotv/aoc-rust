@@ -6,7 +6,7 @@
 YEAR=2023
 DAY=06
 (mkdir --parents data/year$YEAR/day$DAY && cd data/year$YEAR/day$DAY && aoc download --overwrite --year $YEAR --day $DAY)
-cp ./src/template.rs ./src/year$YEAR/day$DAY.rs
+cp --update none ./src/template.rs ./src/year$YEAR/day$DAY.rs
 ```
 
 ### solve all challenges

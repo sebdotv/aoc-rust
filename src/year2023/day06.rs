@@ -4,10 +4,10 @@ use std::str::FromStr;
 
 use crate::challenge::Day;
 
-pub fn day() -> Day<u32> {
+pub fn day() -> Day<u64> {
     Day {
-        part1_solutions: (288, None),
-        part2_solutions: None,
+        part1_solutions: (288, Some(800280)),
+        part2_solutions: Some((71503, Some(45128024))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -15,17 +15,10 @@ pub fn day() -> Day<u32> {
     }
 }
 
-// race
-// time (ms)
-// distance (mm)
-// hold button: charge boat
-// release button: allow boat to move
-// starting speed: 0 mm/ms
-// hold button: for each 1 ms, speed += 1 mm/ms
-
+#[derive(Debug)]
 struct Race {
-    time: u32,
-    distance: u32,
+    time: u64,
+    distance: u64,
 }
 
 struct Puzzle {
@@ -41,14 +34,11 @@ impl FromStr for Puzzle {
             .map(|line| {
                 line.split_whitespace()
                     .dropping(1)
-                    .map(|s| s.parse::<u32>().unwrap())
+                    .map(|s| s.parse::<u64>().unwrap())
                     .collect_vec()
             })
             .collect_tuple()
             .unwrap();
-
-        println!("{:?}", time);
-        println!("{:?}", distance);
 
         let races = time
             .into_iter()
@@ -60,26 +50,30 @@ impl FromStr for Puzzle {
     }
 }
 
-fn part1(data: &str) -> Result<u32> {
+fn part1(data: &str) -> Result<u64> {
     let races = data.parse::<Puzzle>()?.races;
 
     let product = races.iter().map(ways_to_beat).product::<usize>();
 
-    Ok(u32::try_from(product)?)
+    Ok(u64::try_from(product)?)
 }
 
 fn ways_to_beat(race: &Race) -> usize {
     (0..=race.time)
         .map(|hold| {
             let speed = hold;
-            let dist = speed * (race.time - hold);
-            println!("hold: {}, speed: {}, dist: {}", hold, speed, dist);
-            dist
+            speed * (race.time - hold) // dist
         })
         .filter(|dist| *dist > race.distance)
         .count()
 }
 
-fn part2(_data: &str) -> Result<u32> {
-    todo!()
+fn part2(data: &str) -> Result<u64> {
+    let races = data.parse::<Puzzle>()?.races;
+    let time = races.iter().map(|r| r.time).join("").parse::<u64>()?;
+    let distance = races.iter().map(|r| r.distance).join("").parse::<u64>()?;
+    let race = Race { time, distance };
+
+    let ways_to_beat = ways_to_beat(&race);
+    Ok(u64::try_from(ways_to_beat)?)
 }
