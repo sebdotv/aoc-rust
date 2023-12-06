@@ -21,17 +21,17 @@ struct Args {
 
     /// Whether only the latest days should be checked (default: all available days)
     #[arg(long)]
-    only_latest: bool,
+    latest: bool,
 
     #[arg(long, value_enum)]
-    skip: Option<Skip>,
+    only: Option<Only>,
 }
 
 #[derive(Debug, Copy, Clone, clap::ValueEnum, Eq, PartialEq)]
 #[clap(rename_all = "lowercase")]
-enum Skip {
-    Examples,
-    Inputs,
+enum Only {
+    Example,
+    Input,
 }
 
 fn main() -> Result<()> {
@@ -57,23 +57,23 @@ fn main() -> Result<()> {
         })
         .collect_vec();
 
-    let challenge_days = if args.only_latest {
+    let challenge_days = if args.latest {
         days.into_iter().rev().take(1).collect_vec()
     } else {
         days
     };
     for ref day in challenge_days {
         match day {
-            DayWrapper::I32(day) => check_day(day, args.skip)?,
-            DayWrapper::U32(day) => check_day(day, args.skip)?,
-            DayWrapper::U64(day) => check_day(day, args.skip)?,
-            DayWrapper::String(day) => check_day(day, args.skip)?,
+            DayWrapper::I32(day) => check_day(day, args.only)?,
+            DayWrapper::U32(day) => check_day(day, args.only)?,
+            DayWrapper::U64(day) => check_day(day, args.only)?,
+            DayWrapper::String(day) => check_day(day, args.only)?,
         }
     }
     Ok(())
 }
 
-fn check_day<T>(day: &Day<T>, skip: Option<Skip>) -> Result<()>
+fn check_day<T>(day: &Day<T>, only: Option<Only>) -> Result<()>
 where
     T: Eq + Debug,
 {
@@ -99,7 +99,7 @@ where
                 .unwrap()
                 .as_str(),
             &input_data,
-            skip,
+            only,
         )?;
     }
     Ok(())
@@ -110,14 +110,14 @@ fn check_part<T>(
     part: Part,
     example_data: &str,
     input_data: &str,
-    skip: Option<Skip>,
+    only: Option<Only>,
 ) -> Result<bool>
 where
     T: Eq + Debug,
 {
     let mut ok = true;
     if let Some((example_solution, input_solution)) = day.solutions(part) {
-        if skip != Some(Skip::Examples) {
+        if only != Some(Only::Input) {
             ok &= check_value(
                 day,
                 part,
@@ -129,7 +129,7 @@ where
                 return Ok(ok);
             }
         }
-        if skip != Some(Skip::Inputs) {
+        if only != Some(Only::Example) {
             ok &= check_value(
                 day,
                 part,
