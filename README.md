@@ -1,9 +1,12 @@
 # aoc-rust
 
-### download
+### download & prepare
 
 ```shell
-(mkdir --parents data/year2023/day05 && cd data/year2023/day05 && aoc download --overwrite --year 2023 --day 05)
+YEAR=2023
+DAY=06
+(mkdir --parents data/year$YEAR/day$DAY && cd data/year$YEAR/day$DAY && aoc download --overwrite --year $YEAR --day $DAY)
+cp ./src/template.rs ./src/year$YEAR/day$DAY.rs
 ```
 
 ### solve all challenges
