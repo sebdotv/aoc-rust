@@ -2,6 +2,7 @@ use crate::challenge::DayWrapper;
 use itertools::Itertools;
 
 pub mod challenge;
+mod f64_utils;
 pub mod input;
 #[allow(dead_code)]
 #[allow(unreachable_code)]
