@@ -111,22 +111,26 @@ fn check_part<T>(
     example_data: &str,
     input_data: &str,
     skip: Option<Skip>,
-) -> Result<()>
+) -> Result<bool>
 where
     T: Eq + Debug,
 {
+    let mut ok = true;
     if let Some((example_solution, input_solution)) = day.solutions(part) {
         if skip != Some(Skip::Examples) {
-            check_value(
+            ok &= check_value(
                 day,
                 part,
                 "example",
                 Some(example_solution),
                 solve_and_measure(day, part, example_data)?,
             );
+            if !ok {
+                return Ok(ok);
+            }
         }
         if skip != Some(Skip::Inputs) {
-            check_value(
+            ok &= check_value(
                 day,
                 part,
                 "input",
@@ -135,7 +139,7 @@ where
             );
         }
     }
-    Ok(())
+    Ok(ok)
 }
 
 fn solve_and_measure<T>(day: &Day<T>, part: Part, data: &str) -> Result<(T, Duration)> {
@@ -152,7 +156,8 @@ fn check_value<T>(
     label: &str,
     expected: Option<&T>,
     actual_result: (T, Duration),
-) where
+) -> bool
+where
     T: Eq + Debug,
 {
     let (actual, duration) = actual_result;
@@ -161,9 +166,9 @@ fn check_value<T>(
             .yellow()
             .to_string()
     };
-    let (status, details) = if let Some(expected) = expected {
+    let (status, details, ok) = if let Some(expected) = expected {
         if actual == *expected {
-            ("OK".green(), duration_str())
+            ("OK".green(), duration_str(), true)
         } else {
             (
                 "FAIL".red().bold(),
@@ -172,6 +177,7 @@ fn check_value<T>(
                     format!("{expected:?}").green(),
                     format!("{actual:?}").red(),
                 ),
+                false,
             )
         }
     } else {
@@ -182,6 +188,7 @@ fn check_value<T>(
                 duration_str(),
                 format!("{actual:?}").cyan().bold(),
             ),
+            true,
         )
     };
     println!(
@@ -191,4 +198,5 @@ fn check_value<T>(
         label,
         details
     );
+    ok
 }
