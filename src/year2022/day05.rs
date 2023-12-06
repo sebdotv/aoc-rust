@@ -151,7 +151,10 @@ mod tests {
         assert_eq!(parse_move("move 1 from 2 to 3"), Ok(new_move(1, 2, 3)));
         assert_eq!(parse_move("___move 1 from 2 to 3"), Err(InvalidMove));
         assert_eq!(parse_move("move 1 from 2 to 3___"), Err(InvalidMove));
-        assert_eq!(parse_move("move 1000000 from 2 to 3"), Err(ParseIntError));
+        assert_eq!(
+            parse_move("move 100000000000000000000000 from 2 to 3"),
+            Err(ParseIntError)
+        );
     }
 
     fn parse_move(s: &str) -> std::result::Result<Move, ParseMoveError> {
