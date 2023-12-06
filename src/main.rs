@@ -1,8 +1,8 @@
-use chrono::Datelike;
 use std::fmt::Debug;
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
+use chrono::Datelike;
 use clap::Parser;
 use colored::Colorize;
 use itertools::Itertools;
@@ -162,9 +162,13 @@ where
 {
     let (actual, duration) = actual_result;
     let duration_str = || {
-        format!("{:.1} µs", duration.as_secs_f64() * 1e6)
-            .yellow()
-            .to_string()
+        let text = format!("{:.1} µs", duration.as_secs_f64() * 1e6);
+        (if duration.as_millis() >= 200 {
+            text.bold().truecolor(255, 83, 0) // orange
+        } else {
+            text.yellow()
+        })
+        .to_string()
     };
     let (status, details, ok) = if let Some(expected) = expected {
         if actual == *expected {
