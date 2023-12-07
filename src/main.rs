@@ -67,6 +67,7 @@ fn main() -> Result<()> {
             DayWrapper::I32(day) => check_day(day, args.only)?,
             DayWrapper::U32(day) => check_day(day, args.only)?,
             DayWrapper::U64(day) => check_day(day, args.only)?,
+            DayWrapper::Usize(day) => check_day(day, args.only)?,
             DayWrapper::String(day) => check_day(day, args.only)?,
         }
     }

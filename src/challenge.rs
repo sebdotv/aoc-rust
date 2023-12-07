@@ -98,6 +98,7 @@ pub enum DayWrapper {
     I32(Day<i32>),
     U32(Day<u32>),
     U64(Day<u64>),
+    Usize(Day<usize>),
     String(Day<String>),
 }
 
@@ -108,6 +109,7 @@ impl DayWrapper {
             I32(day) => day.source_file_location(),
             U32(day) => day.source_file_location(),
             U64(day) => day.source_file_location(),
+            Usize(day) => day.source_file_location(),
             String(day) => day.source_file_location(),
         }
     }
@@ -126,6 +128,11 @@ impl From<Day<u32>> for DayWrapper {
 impl From<Day<u64>> for DayWrapper {
     fn from(day: Day<u64>) -> Self {
         DayWrapper::U64(day)
+    }
+}
+impl From<Day<usize>> for DayWrapper {
+    fn from(day: Day<usize>) -> Self {
+        DayWrapper::Usize(day)
     }
 }
 impl From<Day<String>> for DayWrapper {
