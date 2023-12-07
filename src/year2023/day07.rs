@@ -23,7 +23,7 @@ fn part1(data: &str) -> Result<u32> {
     let hands = hands
         .into_iter()
         .map(|hand| {
-            let hand_type = hand_type(&hand.cards.cards);
+            let hand_type = hand_type(&hand.cards);
             (hand, hand_type)
         })
         .collect_vec();
@@ -39,14 +39,13 @@ fn part2(data: &str) -> Result<u32> {
             use HandType::*;
             let (jokers, rest) = hand
                 .cards
-                .cards
                 .iter()
                 .partition::<Vec<Card>, _>(|&&card| card == Card::_J);
             let jokers = jokers.len();
             let hand_type = if jokers == 5 {
-                FiveOfAKind
+                FiveOfAKind // special case for 5 jokers
             } else {
-                let hand_type = hand_type(&rest);
+                let hand_type = hand_type(&rest); // eval hand without jokers
                 let improved_hand_type = match hand_type {
                     FiveOfAKind | FullHouse => None,
                     FourOfAKind => (jokers > 0).then_some(FiveOfAKind),
@@ -77,15 +76,15 @@ fn part2(data: &str) -> Result<u32> {
                         _ => unreachable!("Invalid hand: {:?}", hand),
                     },
                 };
-                improved_hand_type.unwrap_or(hand_type)
+                improved_hand_type.unwrap_or(hand_type) // apply joker improvements or keep original
             };
             (hand, hand_type)
         })
         .collect_vec();
-    let sum = total_score(&hands, |card| match card {
-        Card::_J => 100,
-        _ => card as usize,
-    });
+    let sum = total_score(
+        &hands,
+        |card| if card == Card::_J { 100 } else { card as usize }, // jokers have lowest rank
+    );
     Ok(sum)
 }
 
@@ -98,7 +97,7 @@ fn parse_hands(data: &str) -> Result<Vec<Hand>> {
 fn total_score(hands: &[(Hand, HandType)], card_rank: fn(Card) -> usize) -> u32 {
     let sum = hands
         .iter()
-        .sorted_by_key(|(hand, hand_type)| (hand_type, hand.cards.cards.map(card_rank)))
+        .sorted_by_key(|(hand, hand_type)| (hand_type, hand.cards.map(card_rank)))
         .rev()
         .enumerate()
         .map(|(i, (hand, _))| {
@@ -109,38 +108,19 @@ fn total_score(hands: &[(Hand, HandType)], card_rank: fn(Card) -> usize) -> u32 
     sum
 }
 
-struct Cards {
-    cards: [Card; 5],
-}
-impl Debug for Cards {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let cards = self.cards.iter().map(ToString::to_string).join("");
-        write!(f, "{}", cards)
-    }
-}
+type Cards = [Card; 5];
 
 #[derive(Debug)]
 struct Hand {
     cards: Cards,
     bid: u32,
-    // hand_type: HandType,
-}
-impl Hand {
-    fn new(cards: Cards, bid: u32) -> Self {
-        // let hand_type = hand_type(&cards);
-        Self {
-            cards,
-            bid,
-            // hand_type,
-        }
-    }
 }
 
 fn hand_type(cards: &[Card]) -> HandType {
     let counts = cards.iter().counts();
     let groups = counts
         .iter()
-        .filter(|(_, &count)| count > 1)
+        .filter(|(_, &count)| count > 1) // only keep pairs or more
         .sorted_by_key(|(_, &count)| count)
         .rev()
         .collect_vec();
@@ -175,7 +155,7 @@ impl FromStr for Hand {
             .try_into()
             .map_err(|_| anyhow!("Invalid number of cards: {}", s))?;
         let bid = bid.parse::<u32>()?;
-        Ok(Self::new(Cards { cards }, bid))
+        Ok(Self { cards, bid })
     }
 }
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
