@@ -4,9 +4,9 @@
 
 ```shell
 YEAR=2023
-DAY=06
+DAY=07
 (mkdir --parents data/year$YEAR/day$DAY && cd data/year$YEAR/day$DAY && aoc download --overwrite --year $YEAR --day $DAY)
-cp --update none ./src/template.rs ./src/year$YEAR/day$DAY.rs
+cp --no-clobber ./src/template.rs ./src/year$YEAR/day$DAY.rs
 ```
 
 ### solve all challenges

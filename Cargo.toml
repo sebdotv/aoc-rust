@@ -31,6 +31,7 @@ harness = false
 pedantic = { level = "warn", priority = 0 }
 enum_glob_use = { level = "allow", priority = 1 } # part of pedantic
 missing_errors_doc = { level = "allow", priority = 1 } # part of pedantic
+uninlined_format_args = { level = "allow", priority = 1 } # part of pedantic
 unreadable_literal = { level = "allow", priority = 1 } # part of pedantic
 cargo = { level = "warn", priority = 0 }
 cargo_common_metadata = { level = "allow", priority = 1 } # part of cargo
