@@ -1,14 +1,17 @@
-use crate::challenge::Day;
+use std::str::FromStr;
+
 use anyhow::{anyhow, Result};
 use indexmap::IndexMap;
 use itertools::Itertools;
-use std::str::FromStr;
+use prime_factorization::Factorization;
 use strum_macros::EnumString;
 
-pub fn day() -> Day<u32> {
+use crate::challenge::Day;
+
+pub fn day() -> Day<u64> {
     Day {
         part1_solutions: (2, Some(19099)),
-        part2_solutions: Some((6, None)),
+        part2_solutions: Some((6, Some(17099847107071))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -16,13 +19,14 @@ pub fn day() -> Day<u32> {
     }
 }
 
-const START: &str = "AAA";
-const END: &str = "ZZZ";
-
-fn part1(data: &str) -> Result<u32> {
+fn part1(data: &str) -> Result<u64> {
     let puzzle = data.parse::<Puzzle>()?;
+    let start = puzzle.network.get("AAA").unwrap();
+    solve(&puzzle, start, |node_id| node_id == "ZZZ")
+}
 
-    let mut node = puzzle.network.get(START).unwrap();
+fn solve(puzzle: &Puzzle, start: &Node, end_condition: fn(&str) -> bool) -> Result<u64> {
+    let mut node = start;
     let mut instr_idx = 0;
     let mut steps = 1;
 
@@ -35,11 +39,14 @@ fn part1(data: &str) -> Result<u32> {
             L => &node.left,
             R => &node.right,
         };
-        if node_id == END {
+        if end_condition(node_id) {
             break;
         }
 
-        node = puzzle.network.get(node_id).unwrap();
+        node = puzzle
+            .network
+            .get(node_id)
+            .ok_or(anyhow!("missing node {}", node_id))?;
 
         instr_idx = (instr_idx + 1) % puzzle.instructions.len();
 
@@ -49,8 +56,23 @@ fn part1(data: &str) -> Result<u32> {
     Ok(steps)
 }
 
-fn part2(_data: &str) -> Result<u32> {
-    todo!()
+fn part2(data: &str) -> Result<u64> {
+    let puzzle = data.parse::<Puzzle>()?;
+    let starts = puzzle
+        .network
+        .values()
+        .filter(|node| node.id.ends_with('A'))
+        .collect_vec();
+    let steps = starts
+        .iter()
+        .map(|start| solve(&puzzle, start, |node_id| node_id.ends_with('Z')).unwrap())
+        .collect_vec();
+    let unique_factors_product = steps
+        .iter()
+        .flat_map(|&x| Factorization::run(x).factors)
+        .unique()
+        .product();
+    Ok(unique_factors_product)
 }
 
 #[derive(Debug)]
@@ -101,9 +123,9 @@ impl FromStr for Node {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let (id, rhs) = s.split_once(" = ").unwrap();
         let (left, right) = rhs
-            .strip_prefix("(")
+            .strip_prefix('(')
             .unwrap()
-            .strip_suffix(")")
+            .strip_suffix(')')
             .unwrap()
             .split_once(", ")
             .unwrap();
@@ -121,15 +143,15 @@ mod tests {
 
     #[test]
     fn part1_extra_examples() -> Result<()> {
-        let f = |s: &str| part1(s.trim().lines().map(|s| s.trim()).join("\n").as_str());
+        let f = |s: &str| part1(s.trim().lines().map(str::trim).join("\n").as_str());
         assert_eq!(
-            f(r#"
-            LLR
-            
-            AAA = (BBB, BBB)
-            BBB = (AAA, ZZZ)
-            ZZZ = (ZZZ, ZZZ)
-        "#)?,
+            f(r"
+                LLR
+                
+                AAA = (BBB, BBB)
+                BBB = (AAA, ZZZ)
+                ZZZ = (ZZZ, ZZZ)
+            ")?,
             6
         );
         Ok(())
