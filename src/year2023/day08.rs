@@ -3,7 +3,6 @@ use std::str::FromStr;
 use anyhow::{anyhow, Result};
 use indexmap::IndexMap;
 use itertools::Itertools;
-use prime_factorization::Factorization;
 use strum_macros::EnumString;
 
 use crate::challenge::Day;
@@ -69,10 +68,26 @@ fn part2(data: &str) -> Result<u64> {
         .collect_vec();
     let unique_factors_product = steps
         .iter()
-        .flat_map(|&x| Factorization::run(x).factors)
+        .flat_map(|&x| prime_factorization_trial_division(x))
         .unique()
         .product();
     Ok(unique_factors_product)
+}
+
+fn prime_factorization_trial_division(x: u64) -> Vec<u64> {
+    // https://en.wikipedia.org/wiki/Trial_division
+    let mut factors: Vec<u64> = Vec::new();
+    let mut f: u64 = 2; // the first possible factor
+    let mut n = x;
+    while n > 1 {
+        if n % f == 0 {
+            factors.push(f);
+            n /= f;
+        } else {
+            f += 1;
+        }
+    }
+    factors
 }
 
 #[derive(Debug)]

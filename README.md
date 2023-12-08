@@ -24,5 +24,5 @@ cargo clippy --all-targets --all-features
 ### benchmark
 
 ```shell
-cargo bench --benches year2023::day05::part2
+cargo bench --benches year2023::day08::part2
 ```
