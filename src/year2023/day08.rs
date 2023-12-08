@@ -7,12 +7,12 @@ use strum_macros::EnumString;
 
 pub fn day() -> Day<u32> {
     Day {
-        part1_solutions: (2, None),
-        part2_solutions: None,
+        part1_solutions: (2, Some(19099)),
+        part2_solutions: Some((6, None)),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
-        distinct_examples: false,
+        distinct_examples: true,
     }
 }
 
@@ -21,34 +21,29 @@ const END: &str = "ZZZ";
 
 fn part1(data: &str) -> Result<u32> {
     let puzzle = data.parse::<Puzzle>()?;
-    println!("{:?}", puzzle);
 
     let mut node = puzzle.network.get(START).unwrap();
     let mut instr_idx = 0;
     let mut steps = 1;
 
     loop {
-        use Instr::*;
+        use Instruction::*;
 
-        let instr = puzzle.instrs.get(instr_idx).unwrap();
-        println!("{:?} {:?}", node, instr);
+        let instr = puzzle.instructions.get(instr_idx).unwrap();
 
         let node_id = match instr {
             L => &node.left,
             R => &node.right,
         };
-
         if node_id == END {
             break;
         }
 
         node = puzzle.network.get(node_id).unwrap();
 
-        instr_idx = (instr_idx + 1) % puzzle.instrs.len();
+        instr_idx = (instr_idx + 1) % puzzle.instructions.len();
 
-        // if instr_idx == 0 {
         steps += 1;
-        // }
     }
 
     Ok(steps)
@@ -60,12 +55,11 @@ fn part2(_data: &str) -> Result<u32> {
 
 #[derive(Debug)]
 struct Puzzle {
-    instrs: Vec<Instr>,
+    instructions: Vec<Instruction>,
     network: IndexMap<String, Node>,
 }
-// #[derive(Debug, Eq, PartialEq, Hash, EnumString, strum_macros::Display, Copy, Clone)]
 #[derive(Debug, EnumString)]
-enum Instr {
+enum Instruction {
     L,
     R,
 }
@@ -80,22 +74,25 @@ impl FromStr for Puzzle {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let lines = s.lines().collect_vec();
-        let (instrs, network) = lines
+        let (instructions, network) = lines
             .split(|line| line.is_empty())
             .collect_tuple()
             .ok_or(anyhow!("Could not split"))?;
-        let (instrs,) = instrs.iter().collect_tuple().unwrap();
-        let instrs = instrs
+        let (instructions,) = instructions.iter().collect_tuple().unwrap();
+        let instructions = instructions
             .chars()
             .map(|c| c.to_string())
-            .map(|s| s.parse::<Instr>().unwrap())
+            .map(|s| s.parse::<Instruction>().unwrap())
             .collect();
         let network = network
             .iter()
             .map(|s| s.parse::<Node>().unwrap())
             .map(|node| (node.id.clone(), node))
             .collect();
-        Ok(Self { instrs, network })
+        Ok(Self {
+            instructions,
+            network,
+        })
     }
 }
 
