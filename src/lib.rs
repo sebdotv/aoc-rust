@@ -3,6 +3,7 @@ use itertools::Itertools;
 
 pub mod challenge;
 mod f64_utils;
+mod grid;
 pub mod input;
 #[allow(dead_code)]
 #[allow(unreachable_code)]

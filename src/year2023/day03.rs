@@ -7,6 +7,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::challenge::Day;
+use crate::grid::Grid;
 
 pub fn day() -> Day<u32> {
     Day {
@@ -22,7 +23,7 @@ pub fn day() -> Day<u32> {
 fn part1(data: &str) -> Result<u32> {
     let lines = data.lines().collect_vec();
 
-    let grid = Grid::from_lines(&lines);
+    let grid: Grid<char> = Grid::from_lines(&lines);
     let symbols = grid
         .coords()
         .filter(|(x, y)| {
@@ -53,59 +54,6 @@ fn part1(data: &str) -> Result<u32> {
     Ok(sum)
 }
 
-struct Grid<T> {
-    w: usize,
-    h: usize,
-    data: Vec<T>,
-}
-impl Grid<char> {
-    fn from_lines(lines: &[&str]) -> Self {
-        let w = lines[0].len();
-        let h = lines.len();
-        let data = lines
-            .iter()
-            .flat_map(|line| line.chars())
-            .collect::<Vec<_>>();
-        Self { w, h, data }
-    }
-}
-
-impl<T> Grid<T> {
-    fn coords(&self) -> impl Iterator<Item = (usize, usize)> {
-        (0..self.w).cartesian_product(0..self.h)
-    }
-
-    fn get(&self, x: usize, y: usize) -> &T {
-        self.data.get(x + y * self.w).unwrap()
-    }
-
-    fn neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
-        (-1..=1isize)
-            .flat_map(|dx| {
-                (-1..=1isize).filter_map(move |dy| {
-                    if dx != 0 || dy != 0 {
-                        let (x, y) = (
-                            isize::try_from(x).unwrap() + dx,
-                            isize::try_from(y).unwrap() + dy,
-                        );
-                        if x >= 0
-                            && y >= 0
-                            && x < isize::try_from(self.w).unwrap()
-                            && y < isize::try_from(self.h).unwrap()
-                        {
-                            Some((usize::try_from(x).unwrap(), usize::try_from(y).unwrap()))
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                })
-            })
-            .collect()
-    }
-}
-
 lazy_static! {
     static ref NUMBER_RE: Regex = Regex::new(r"\d+").unwrap();
 }
@@ -127,7 +75,7 @@ fn find_numbers(lines: &[&str]) -> Vec<NumberLocation> {
 fn part2(data: &str) -> Result<u32> {
     let lines = data.lines().collect_vec();
 
-    let grid = Grid::from_lines(&lines);
+    let grid: Grid<char> = Grid::from_lines(&lines);
 
     let get_number = |loc: &NumberLocation| -> Result<u32> {
         let (x_range, y) = loc;
