@@ -8,6 +8,7 @@ mod day05;
 mod day06;
 mod day07;
 mod day08;
+mod day09;
 
 #[must_use]
 pub fn challenge_days() -> Vec<DayWrapper> {
@@ -20,5 +21,6 @@ pub fn challenge_days() -> Vec<DayWrapper> {
         day06::day().into(),
         day07::day().into(),
         day08::day().into(),
+        day09::day().into(),
     ]
 }
