@@ -3,6 +3,10 @@ use std::str::FromStr;
 
 use itertools::Itertools;
 
+#[derive(Eq, PartialEq, Hash, Copy, Clone)]
+pub struct Coord(pub usize, pub usize);
+
+#[derive(Debug)]
 pub struct Grid<T> {
     w: usize,
     h: usize,
@@ -29,15 +33,19 @@ where
 }
 
 impl<T> Grid<T> {
-    pub fn coords(&self) -> impl Iterator<Item = (usize, usize)> {
-        (0..self.w).cartesian_product(0..self.h)
+    pub fn coords(&self) -> impl Iterator<Item = Coord> {
+        (0..self.w)
+            .cartesian_product(0..self.h)
+            .map(|(x, y)| Coord(x, y))
     }
 
-    pub fn get(&self, x: usize, y: usize) -> &T {
+    pub fn get(&self, coord: &Coord) -> &T {
+        let Coord(x, y) = coord;
         self.data.get(x + y * self.w).unwrap()
     }
 
-    pub fn neighbors(&self, x: usize, y: usize) -> Vec<(usize, usize)> {
+    pub fn neighbors(&self, coord: &Coord) -> Vec<Coord> {
+        let Coord(x, y) = *coord;
         (-1..=1isize)
             .flat_map(|dx| {
                 (-1..=1isize).filter_map(move |dy| {
@@ -60,6 +68,7 @@ impl<T> Grid<T> {
                     }
                 })
             })
+            .map(|(x, y)| Coord(x, y))
             .collect()
     }
 }

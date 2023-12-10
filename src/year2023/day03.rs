@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::challenge::Day;
-use crate::grid::Grid;
+use crate::grid::{Coord, Grid};
 
 pub fn day() -> Day<u32> {
     Day {
@@ -26,8 +26,8 @@ fn part1(data: &str) -> Result<u32> {
     let grid: Grid<char> = Grid::from_lines(&lines);
     let symbols = grid
         .coords()
-        .filter(|(x, y)| {
-            let c = grid.get(*x, *y);
+        .filter(|coord| {
+            let c = grid.get(coord);
             *c != '.' && !c.is_ascii_digit()
         })
         .collect::<IndexSet<_>>();
@@ -42,9 +42,11 @@ fn part1(data: &str) -> Result<u32> {
     let part_numbers = find_numbers(&lines)
         .iter()
         .filter(|(x_range, y)| {
-            x_range
-                .clone()
-                .any(|x| grid.neighbors(x, *y).iter().any(|p| symbols.contains(p)))
+            x_range.clone().any(|x| {
+                grid.neighbors(&Coord(x, *y))
+                    .iter()
+                    .any(|p| symbols.contains(p))
+            })
         })
         .map(get_number)
         .collect::<Result<Vec<_>>>()?;
@@ -93,10 +95,10 @@ fn part2(data: &str) -> Result<u32> {
             x_range
                 .clone()
                 .flat_map(|x| {
-                    let neighbors = grid.neighbors(x, *y);
+                    let neighbors = grid.neighbors(&Coord(x, *y));
                     neighbors
                         .iter()
-                        .filter(|(x, y)| *grid.get(*x, *y) == '*')
+                        .filter(|coord| *grid.get(coord) == '*')
                         .copied()
                         .collect_vec()
                 })
