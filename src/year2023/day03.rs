@@ -23,7 +23,7 @@ pub fn day() -> Day<u32> {
 fn part1(data: &str) -> Result<u32> {
     let lines = data.lines().collect_vec();
 
-    let grid: Grid<char> = Grid::from_lines(&lines);
+    let grid: Grid<char> = Grid::from_lines(&lines)?;
     let symbols = grid
         .coords()
         .filter(|coord| {
@@ -77,7 +77,7 @@ fn find_numbers(lines: &[&str]) -> Vec<NumberLocation> {
 fn part2(data: &str) -> Result<u32> {
     let lines = data.lines().collect_vec();
 
-    let grid: Grid<char> = Grid::from_lines(&lines);
+    let grid: Grid<char> = Grid::from_lines(&lines)?;
 
     let get_number = |loc: &NumberLocation| -> Result<u32> {
         let (x_range, y) = loc;

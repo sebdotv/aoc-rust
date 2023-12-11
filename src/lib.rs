@@ -9,6 +9,8 @@ pub mod input;
 #[allow(unreachable_code)]
 #[allow(unused_variables)]
 mod template;
+#[cfg(test)]
+mod testing;
 pub mod year2022;
 pub mod year2023;
 
