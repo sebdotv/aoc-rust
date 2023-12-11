@@ -174,8 +174,9 @@ impl Solver {
                                     true
                                 }
                                 [vertical_direction] => {
-                                    if let Some(prev_partial) = pending_crossing {
-                                        let crossing = prev_partial != **vertical_direction;
+                                    if let Some(prev_pending_crossing) = pending_crossing {
+                                        let crossing =
+                                            prev_pending_crossing != **vertical_direction;
                                         pending_crossing = None;
                                         crossing
                                     } else {
