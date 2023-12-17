@@ -19,8 +19,7 @@ pub fn day() -> Day<usize> {
 }
 
 fn part1(data: &str) -> Result<usize> {
-    let lines = data.lines().collect_vec();
-    let grid: Grid<Tile> = Grid::from_lines(&lines)?;
+    let grid: Grid<Tile> = data.parse()?;
 
     let solver = Solver { grid };
 
@@ -46,8 +45,7 @@ fn part1(data: &str) -> Result<usize> {
 }
 
 fn part2_internal(data: &str) -> Result<(Solver, IndexSet<Coord>, Vec<Coord>)> {
-    let lines = data.lines().collect_vec();
-    let grid: Grid<Tile> = Grid::from_lines(&lines)?;
+    let grid: Grid<Tile> = data.parse()?;
 
     let solver = Solver { grid };
     let start = solver.find_start();

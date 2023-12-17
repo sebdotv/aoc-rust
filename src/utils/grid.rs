@@ -36,6 +36,25 @@ impl Direction {
     }
 }
 
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, EnumIter)]
+pub enum Turn {
+    Left,
+    Right,
+}
+impl Turn {
+    #[must_use]
+    pub fn apply(self, dir: Direction) -> Direction {
+        use Direction::*;
+        use Turn::*;
+        match (self, dir) {
+            (Left, N) | (Right, S) => W,
+            (Left, S) | (Right, N) => E,
+            (Left, E) | (Right, W) => N,
+            (Left, W) | (Right, E) => S,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Grid<T> {
     pub w: usize,
@@ -165,6 +184,10 @@ impl<T> Grid<T> {
             Direction::E if *x < self.w - 1 => Some(Coord(x + 1, *y)),
             _ => None,
         }
+    }
+
+    pub fn bottom_right(&self) -> Coord {
+        Coord(self.w - 1, self.h - 1)
     }
 
     // #[allow(dead_code)]
