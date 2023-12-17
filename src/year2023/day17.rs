@@ -10,7 +10,7 @@ use strum::IntoEnumIterator;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (102, Some(1110)),
-        part2_solutions: None,
+        part2_solutions: Some((94, None)),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -20,20 +20,22 @@ pub fn day() -> Day<usize> {
 
 fn part1(data: &str) -> Result<usize> {
     let grid: Grid<Cost> = data.parse()?;
-    let puzzle = Puzzle { grid };
-    let start = Pos {
-        prev_action: None,
-        coord: Coord(0, 0),
+    let puzzle = Puzzle {
+        grid,
+        max_straight_len: 3,
+        min_straight_len: 0,
     };
-    let goal_coord: Coord = puzzle.grid.bottom_right();
-    let result = astar(
-        &start,
-        |p| puzzle.successors(p),
-        |p| p.coord.manhattan_distance(&goal_coord),
-        |p| p.coord == goal_coord,
-    );
-    let (_path, path_cost) = result.unwrap();
-    Ok(path_cost)
+    Ok(puzzle.solve())
+}
+
+fn part2(data: &str) -> Result<usize> {
+    let grid: Grid<Cost> = data.parse()?;
+    let puzzle = Puzzle {
+        grid,
+        max_straight_len: 10,
+        min_straight_len: 4,
+    };
+    Ok(puzzle.solve())
 }
 
 #[allow(dead_code)]
@@ -51,10 +53,6 @@ fn dump_path(puzzle: &Puzzle, path: &[Pos]) {
     );
 }
 
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct Pos {
     prev_action: Option<(Direction, usize)>,
@@ -70,6 +68,8 @@ type Cost = usize;
 
 struct Puzzle {
     grid: Grid<Cost>,
+    max_straight_len: usize,
+    min_straight_len: usize,
 }
 
 impl Puzzle {
@@ -77,7 +77,7 @@ impl Puzzle {
         use Action::*;
         let options = if let Some((dir, len_in_dir)) = pos.prev_action {
             let mut options = Turn::iter().map(Rotate).collect_vec();
-            if len_in_dir < 3 {
+            if len_in_dir < self.max_straight_len {
                 options.push(Forward);
             }
             options
@@ -112,6 +112,22 @@ impl Puzzle {
             })
             .collect()
     }
+
+    fn solve(&self) -> usize {
+        let start = Pos {
+            prev_action: None,
+            coord: Coord(0, 0),
+        };
+        let goal_coord: Coord = self.grid.bottom_right();
+        let result = astar(
+            &start,
+            |p| self.successors(p),
+            |p| p.coord.manhattan_distance(&goal_coord),
+            |p| p.coord == goal_coord,
+        );
+        let (_path, path_cost) = result.unwrap();
+        path_cost
+    }
 }
 
 #[cfg(test)]
@@ -132,5 +148,17 @@ mod tests {
             711
         ";
         assert_eq!(part1(&trim_lines(data)).unwrap(), 4);
+    }
+
+    #[test]
+    fn part2_extra_example() {
+        let data = r"
+            111111111111
+            999999999991
+            999999999991
+            999999999991
+            999999999991
+        ";
+        assert_eq!(part1(&trim_lines(data)).unwrap(), 71);
     }
 }
