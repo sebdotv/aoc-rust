@@ -16,27 +16,52 @@ pub fn day() -> Day<usize> {
     }
 }
 
+const PART1_BEAM: Beam = Beam {
+    coord: Coord(0, 0),
+    dir: Direction::E,
+};
+
 fn part1(data: &str) -> Result<usize> {
     let grid: Grid<Tile> = data.parse()?;
-    let mut solver = Solver::new(grid);
-
-    // for _ in 0..1000 {
-    //     println!("{}", solver.to_energized_grid());
-    //     println!("{:?}", solver.beams);
-    //     println!();
-    //     let keep_going = solver.solve_step();
-    //     if !keep_going {
-    //         break;
-    //     }
-    // }
-
+    let mut solver = Solver::new(&grid, vec![PART1_BEAM]);
     solver.solve();
-
-    Ok(solver.energized.len())
+    Ok(solver.energized().len())
 }
 
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
+fn part2(data: &str) -> Result<usize> {
+    let grid: Grid<Tile> = data.parse()?;
+
+    let mut beams = vec![];
+    for x in 0..grid.w {
+        beams.push(Beam {
+            coord: Coord(x, 0),
+            dir: Direction::S,
+        });
+        beams.push(Beam {
+            coord: Coord(x, grid.h - 1),
+            dir: Direction::N,
+        });
+    }
+    for y in 0..grid.h {
+        beams.push(Beam {
+            coord: Coord(0, y),
+            dir: Direction::E,
+        });
+        beams.push(Beam {
+            coord: Coord(grid.w - 1, y),
+            dir: Direction::W,
+        });
+    }
+    let max = beams
+        .iter()
+        .map(|beam| {
+            let mut solver = Solver::new(&grid, vec![*beam]);
+            solver.solve();
+            solver.energized().len()
+        })
+        .max()
+        .unwrap();
+    Ok(max)
 }
 
 #[derive(EnumString, Debug, Eq, PartialEq, strum_macros::Display, Copy, Clone, EnumIter)]
@@ -58,22 +83,17 @@ struct Beam {
     coord: Coord,
     dir: Direction,
 }
-struct Solver {
-    grid: Grid<Tile>,
-    energized: IndexSet<Coord>,
+struct Solver<'a> {
+    grid: &'a Grid<Tile>,
     visited: IndexSet<Beam>,
     beams: Vec<Beam>,
 }
 
-impl Solver {
-    fn new(grid: Grid<Tile>) -> Self {
+impl<'a> Solver<'a> {
+    fn new(grid: &'a Grid<Tile>, beams: Vec<Beam>) -> Self {
         Self {
             grid,
-            energized: IndexSet::new(),
-            beams: vec![Beam {
-                coord: Coord(0, 0),
-                dir: Direction::E,
-            }],
+            beams,
             visited: IndexSet::new(),
         }
     }
@@ -81,7 +101,6 @@ impl Solver {
     fn solve_step(&mut self) -> bool {
         if let Some(beam) = self.beams.pop() {
             self.visited.insert(beam);
-            self.energized.insert(beam.coord);
             let tile = self.grid.get(&beam.coord);
             let candidates: Vec<Direction> = match tile {
                 Tile::Empty => {
@@ -133,15 +152,15 @@ impl Solver {
         while self.solve_step() {}
     }
 
+    #[allow(dead_code)]
     fn to_energized_grid(&self) -> Grid<String> {
+        let energized = self.energized();
         self.grid.transform(|(coord, _tile)| {
-            (if self.energized.contains(coord) {
-                "#"
-            } else {
-                "."
-            })
-            .to_owned()
+            (if energized.contains(coord) { "#" } else { "." }).to_owned()
         })
+    }
+    fn energized(&self) -> IndexSet<Coord> {
+        self.visited.iter().map(|beam| beam.coord).collect()
     }
 }
 
@@ -154,7 +173,7 @@ mod tests {
     fn test_part1_example() {
         let data = day().read_data_file("example").unwrap();
         let grid: Grid<Tile> = data.parse().unwrap();
-        let mut solver = Solver::new(grid);
+        let mut solver = Solver::new(&grid, vec![PART1_BEAM]);
         solver.solve();
         let energized = solver.to_energized_grid().to_string();
         let expected = r"
