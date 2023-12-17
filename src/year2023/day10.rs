@@ -5,7 +5,7 @@ use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString};
 
 use crate::challenge::Day;
-use crate::grid::{Coord, Direction, Grid};
+use crate::utils::grid::{Coord, Direction, Grid};
 
 pub fn day() -> Day<usize> {
     Day {

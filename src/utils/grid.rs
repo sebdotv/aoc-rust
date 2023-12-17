@@ -24,6 +24,7 @@ pub enum Direction {
     W,
 }
 impl Direction {
+    #[must_use]
     pub fn reverse(self) -> Direction {
         use Direction::*;
         match self {
@@ -42,16 +43,24 @@ pub struct Grid<T> {
     data: Vec<T>,
 }
 
+impl<T, E> FromStr for Grid<T>
+where
+    E: Debug,
+    T: FromStr<Err = E>,
+{
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let lines = s.lines().collect_vec();
+        Self::from_lines(&lines)
+    }
+}
+
 impl<T, E> Grid<T>
 where
     E: Debug,
     T: FromStr<Err = E>,
 {
-    pub fn from_str(s: &str) -> Result<Self> {
-        let lines = s.lines().collect_vec();
-        Self::from_lines(&lines)
-    }
-
     pub fn from_lines(lines: &[&str]) -> Result<Self> {
         let w = lines[0].len();
         let h = lines.len();
@@ -85,6 +94,9 @@ where
 }
 
 impl<T> Grid<T> {
+    /// # Panics
+    ///
+    /// Will panic if any row has a different length than the first row.
     pub fn from_data(data: Vec<Vec<T>>) -> Self {
         let h = data.len();
         let w = data[0].len();
@@ -105,11 +117,17 @@ impl<T> Grid<T> {
             .collect()
     }
 
+    /// # Panics
+    ///
+    /// Will panic if out of bounds.
     pub fn get(&self, coord: &Coord) -> &T {
         let Coord(x, y) = coord;
         self.data.get(x + y * self.w).unwrap()
     }
 
+    /// # Panics
+    ///
+    /// Will panic if coordinates cannot be converted to usize/isize.
     pub fn neighbors(&self, coord: &Coord) -> Vec<Coord> {
         let Coord(x, y) = *coord;
         (-1..=1isize)

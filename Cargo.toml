@@ -19,6 +19,7 @@ thiserror = "1.0.50"
 lazy_static = "1.4.0"
 clap = { version = "4.4.10", features = ["derive"] }
 chrono = "0.4.31"
+num_enum = "0.7.1"
 
 [dev-dependencies]
 criterion = "0.5.1"
@@ -32,6 +33,7 @@ harness = false
 pedantic = { level = "warn", priority = 0 }
 enum_glob_use = { level = "allow", priority = 1 } # part of pedantic
 missing_errors_doc = { level = "allow", priority = 1 } # part of pedantic
+must_use_candidate = { level = "allow", priority = 1 } # part of pedantic
 uninlined_format_args = { level = "allow", priority = 1 } # part of pedantic
 unreadable_literal = { level = "allow", priority = 1 } # part of pedantic
 cargo = { level = "warn", priority = 0 }

@@ -4,7 +4,7 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use crate::challenge::Day;
-use crate::f64_utils::{try_f64_from_u64, try_u64_from_f64};
+use crate::utils::f64_conversions::{try_f64_from_u64, try_u64_from_f64};
 
 pub fn day() -> Day<u64> {
     Day {

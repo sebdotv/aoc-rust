@@ -2,8 +2,6 @@ use crate::challenge::DayWrapper;
 use itertools::Itertools;
 
 pub mod challenge;
-mod f64_utils;
-mod grid;
 pub mod input;
 #[allow(dead_code)]
 #[allow(unreachable_code)]
@@ -11,6 +9,7 @@ pub mod input;
 mod template;
 #[cfg(test)]
 mod testing;
+pub mod utils;
 pub mod year2022;
 pub mod year2023;
 

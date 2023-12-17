@@ -148,7 +148,7 @@ impl FromStr for Hand {
             .map(|s| {
                 s.to_string()
                     .parse::<Card>()
-                    .with_context(|| anyhow!("Invalid card: {}", s))
+                    .with_context(|| format!("Invalid card: {}", s))
             })
             .collect::<Result<Vec<_>>>()?;
         let cards = cards

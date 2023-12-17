@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::challenge::Day;
-use crate::grid::{Coord, Grid};
+use crate::utils::grid::{Coord, Grid};
 
 pub fn day() -> Day<u32> {
     Day {

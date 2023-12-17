@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use itertools::Itertools;
 
 use crate::challenge::Day;
@@ -27,7 +27,10 @@ fn sum_of_next_values(data: &str, side: &Side) -> Result<i32> {
         .lines()
         .map(|line| {
             line.split_ascii_whitespace()
-                .map(|s| s.parse::<i32>().with_context(|| anyhow!("parse error")))
+                .map(|s| {
+                    s.parse::<i32>()
+                        .with_context(|| format!("parse error: {}", s))
+                })
                 .collect::<Result<Vec<_>>>()
         })
         .collect::<Result<Vec<_>>>()?
