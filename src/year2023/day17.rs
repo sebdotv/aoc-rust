@@ -10,7 +10,7 @@ use strum::IntoEnumIterator;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (102, Some(1110)),
-        part2_solutions: Some((94, None)),
+        part2_solutions: Some((94, Some(1294))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -76,7 +76,11 @@ impl Puzzle {
     fn successors(&self, pos: &Pos) -> Vec<(Pos, Cost)> {
         use Action::*;
         let options = if let Some((dir, len_in_dir)) = pos.prev_action {
-            let mut options = Turn::iter().map(Rotate).collect_vec();
+            let mut options: Vec<Action> = vec![];
+            if len_in_dir >= self.min_straight_len {
+                options.push(Rotate(Turn::Left));
+                options.push(Rotate(Turn::Right));
+            }
             if len_in_dir < self.max_straight_len {
                 options.push(Forward);
             }
@@ -113,6 +117,11 @@ impl Puzzle {
             .collect()
     }
 
+    fn can_stop(&self, pos: &Pos) -> bool {
+        let (_, len_in_dir) = pos.prev_action.unwrap();
+        len_in_dir >= self.min_straight_len
+    }
+
     fn solve(&self) -> usize {
         let start = Pos {
             prev_action: None,
@@ -123,7 +132,7 @@ impl Puzzle {
             &start,
             |p| self.successors(p),
             |p| p.coord.manhattan_distance(&goal_coord),
-            |p| p.coord == goal_coord,
+            |p| p.coord == goal_coord && self.can_stop(p),
         );
         let (_path, path_cost) = result.unwrap();
         path_cost
@@ -159,6 +168,6 @@ mod tests {
             999999999991
             999999999991
         ";
-        assert_eq!(part1(&trim_lines(data)).unwrap(), 71);
+        assert_eq!(part2(&trim_lines(data)).unwrap(), 71);
     }
 }
