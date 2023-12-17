@@ -55,7 +55,6 @@ fn part2(_data: &str) -> Result<usize> {
     todo!()
 }
 
-// #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct Pos {
     prev_action: Option<(Direction, usize)>,
