@@ -8,7 +8,7 @@ use crate::utils::grid::{Coord, Direction, Grid};
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (46, Some(6605)),
-        part2_solutions: Some((51, None)),
+        part2_solutions: Some((51, Some(6766))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
