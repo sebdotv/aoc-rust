@@ -190,9 +190,4 @@ mod tests {
         ";
         assert_eq!(energized.trim(), trim_lines(expected));
     }
-
-    #[test]
-    fn test_part2() -> Result<()> {
-        todo!()
-    }
 }
