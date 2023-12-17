@@ -24,5 +24,11 @@ cargo clippy --all-targets --all-features
 ### benchmark
 
 ```shell
-cargo bench --benches year2023::day12::part2
+cargo bench --benches year2023::day17::part2
+```
+
+### profiling
+
+```shell
+cargo flamegraph -- --latest --part 2 --only input
 ```

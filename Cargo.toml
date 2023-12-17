@@ -26,6 +26,9 @@ pathfinding = "4.6.0"
 criterion = "0.5.1"
 indoc = "2.0.4"
 
+[profile.release]
+debug = 1 # to profile a release build effectively you might need to enable source line debug info
+
 [[bench]]
 name = "bench"
 harness = false
