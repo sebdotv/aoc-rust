@@ -6,7 +6,6 @@ use std::str::FromStr;
 
 use crate::challenge::Day;
 use crate::utils::grid::{Coord, Direction, Grid};
-use crate::year2023::day18::Cell::ColoredHole;
 
 pub fn day() -> Day<i32> {
     Day {
@@ -49,7 +48,7 @@ fn to_grid(data: &str) -> Result<Grid<Cell>> {
                 x: pos.x + dx,
                 y: pos.y + dy,
             };
-            let prev = grid.data.insert(pos, ColoredHole(step.color));
+            let prev = grid.data.insert(pos, Cell::ColoredHole(step.color));
             if let Some(prev) = prev {
                 println!("Overwriting {:?} with {:?}", prev, step);
             }
