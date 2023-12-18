@@ -146,6 +146,15 @@ impl<T> Grid<T> {
 
     /// # Panics
     ///
+    /// Will panic if out of bounds.
+    pub fn set(&mut self, coord: &Coord, value: T) {
+        let Coord(x, y) = coord;
+        let v = self.data.get_mut(x + y * self.w).unwrap();
+        *v = value;
+    }
+
+    /// # Panics
+    ///
     /// Will panic if coordinates cannot be converted to usize/isize.
     pub fn neighbors(&self, coord: &Coord) -> Vec<Coord> {
         let Coord(x, y) = *coord;
@@ -207,6 +216,14 @@ impl<T> Grid<T>
 where
     T: Copy,
 {
+    pub fn empty(w: usize, h: usize, value: T) -> Self {
+        Self {
+            w,
+            h,
+            data: vec![value; w * h],
+        }
+    }
+
     pub fn iter(&self) -> Iter<'_, T> {
         Iter {
             grid: self,
