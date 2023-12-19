@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::str::FromStr;
 
 use anyhow::Result;
@@ -10,7 +11,7 @@ use crate::challenge::Day;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (19114, Some(406849)),
-        part2_solutions: None,
+        part2_solutions: Some((167409079868000, Some(138625360533574))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -43,8 +44,114 @@ fn part1(data: &str) -> Result<usize> {
     Ok(accepted)
 }
 
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
+fn part2(data: &str) -> Result<usize> {
+    let puzzle = data.parse::<Puzzle>()?;
+    let solver = Solver::new(puzzle);
+    let paths = solver.paths("in");
+    Ok(paths.iter().map(Path::combinations).sum())
+}
+
+struct Solver {
+    puzzle: Puzzle,
+}
+impl Solver {
+    fn new(puzzle: Puzzle) -> Self {
+        Self { puzzle }
+    }
+    fn paths(&self, workflow_name: &str) -> Vec<Path> {
+        let workflow = self.puzzle.workflows.get(workflow_name).unwrap();
+
+        let mut paths = vec![];
+        let mut negative_constraints = vec![];
+
+        for rule in &workflow.rules {
+            paths.extend(self.paths_for_action(&rule.action).iter().map(|path| {
+                let mut path = path.clone();
+                path.constraints.push(rule.constraint);
+                path.negative_constraints.extend(&negative_constraints);
+                path
+            }));
+            negative_constraints.push(rule.constraint);
+        }
+
+        paths.extend(
+            self.paths_for_action(&workflow.default_action)
+                .iter()
+                .map(|path| {
+                    let mut path = path.clone();
+                    path.negative_constraints.extend(&negative_constraints);
+                    path
+                }),
+        );
+
+        paths
+    }
+    fn paths_for_action(&self, action: &Action) -> Vec<Path> {
+        match action {
+            Action::Accept => vec![Path {
+                constraints: vec![],
+                negative_constraints: vec![],
+            }],
+            Action::Reject => vec![],
+            Action::GotoWorkflow(other) => self.paths(other),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct Path {
+    constraints: Vec<Constraint>,
+    negative_constraints: Vec<Constraint>,
+}
+impl Path {
+    const MIN: usize = 1;
+    const MAX: usize = 4000;
+    fn combinations(&self) -> usize {
+        let mut possible_values = [[true; Self::MAX]; 4];
+        for constraint in &self.constraints {
+            let range = match constraint.operator {
+                Operator::Lt => constraint.value..=Self::MAX,
+                Operator::Gt => Self::MIN..=constraint.value,
+            };
+            let cat_idx = constraint.category as usize;
+            for i in range {
+                possible_values[cat_idx][i - 1] = false;
+            }
+        }
+        for constraint in &self.negative_constraints {
+            let range = match constraint.operator {
+                Operator::Lt => Self::MIN..constraint.value,
+                #[allow(clippy::range_plus_one)]
+                Operator::Gt => (constraint.value + 1)..Self::MAX + 1,
+            };
+            let cat_idx = constraint.category as usize;
+            for i in range {
+                possible_values[cat_idx][i - 1] = false;
+            }
+        }
+        let mut product = 1;
+        for possible_values_for_cat in possible_values {
+            let count = possible_values_for_cat.iter().filter(|&&b| b).count();
+            product *= count;
+        }
+        product
+    }
+}
+
+impl Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let constraints = self.constraints.iter().map(ToString::to_string).join(", ");
+        let negative_constraints = self
+            .negative_constraints
+            .iter()
+            .map(ToString::to_string)
+            .join(", ");
+        write!(
+            f,
+            "constraints: [{}], negative_constraints: [{}]",
+            constraints, negative_constraints
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -114,10 +221,15 @@ struct Workflow {
 impl Workflow {
     fn apply(&self, part: &Part) -> &Action {
         for rule in &self.rules {
-            let rating = part.ratings.get(&rule.category).unwrap();
-            let matches = match rule.operator {
-                Operator::Lt => *rating < rule.value,
-                Operator::Gt => *rating > rule.value,
+            let Constraint {
+                category,
+                operator,
+                value,
+            } = &rule.constraint;
+            let rating = part.ratings.get(category).unwrap();
+            let matches = match operator {
+                Operator::Lt => rating < value,
+                Operator::Gt => rating > value,
             };
             if matches {
                 return &rule.action;
@@ -166,9 +278,7 @@ impl FromStr for Action {
 
 #[derive(Debug)]
 struct Rule {
-    category: Category,
-    operator: Operator,
-    value: usize,
+    constraint: Constraint,
     action: Action,
 }
 impl FromStr for Rule {
@@ -182,13 +292,29 @@ impl FromStr for Rule {
         let operator = operator.parse::<Operator>().unwrap();
         let value = value.parse::<usize>().unwrap();
 
-        let action = action.parse::<Action>().unwrap();
-        Ok(Self {
+        let constraint = Constraint {
             category,
             operator,
             value,
-            action,
-        })
+        };
+        let action = action.parse::<Action>().unwrap();
+
+        Ok(Self { constraint, action })
+    }
+}
+#[derive(Debug, Copy, Clone)]
+struct Constraint {
+    category: Category,
+    operator: Operator,
+    value: usize,
+}
+impl Display for Constraint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let op = match self.operator {
+            Operator::Lt => "<",
+            Operator::Gt => ">",
+        };
+        write!(f, "{}{}{}", self.category, op, self.value)
     }
 }
 
