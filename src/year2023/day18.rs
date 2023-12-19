@@ -1,3 +1,6 @@
+#![allow(clippy::items_after_statements)]
+#![allow(clippy::match_same_arms)]
+
 use anyhow::{bail, Result};
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
