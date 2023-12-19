@@ -66,19 +66,25 @@ fn main() -> Result<()> {
         days
     };
     let part = args.part.map(Part::try_from).transpose()?;
+    let mut ok = true;
     for ref day in challenge_days {
-        match day {
+        ok &= match day {
             DayWrapper::I32(day) => check_day(day, part, args.only)?,
             DayWrapper::U32(day) => check_day(day, part, args.only)?,
             DayWrapper::U64(day) => check_day(day, part, args.only)?,
             DayWrapper::Usize(day) => check_day(day, part, args.only)?,
             DayWrapper::String(day) => check_day(day, part, args.only)?,
-        }
+        };
     }
-    Ok(())
+
+    if ok {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("Some tests failed"))
+    }
 }
 
-fn check_day<T>(day: &Day<T>, part_filter: Option<Part>, only: Option<Only>) -> Result<()>
+fn check_day<T>(day: &Day<T>, part_filter: Option<Part>, only: Option<Only>) -> Result<bool>
 where
     T: Eq + Debug,
 {
@@ -88,6 +94,7 @@ where
         Some(day.read_data_file("example")?)
     };
     let input_data = day.read_data_file("input")?;
+    let mut ok = true;
     for part in Part::iter() {
         if part_filter.is_some() && part != part_filter.unwrap() {
             continue;
@@ -98,7 +105,7 @@ where
         } else {
             None
         };
-        check_part(
+        ok &= check_part(
             day,
             part,
             part_example_data
@@ -110,7 +117,7 @@ where
             only,
         )?;
     }
-    Ok(())
+    Ok(ok)
 }
 
 fn check_part<T>(
