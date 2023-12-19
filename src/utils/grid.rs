@@ -136,12 +136,22 @@ impl<T> Grid<T> {
             .collect()
     }
 
+    pub fn maybe_get(&self, coord: &Coord) -> Option<&T> {
+        let Coord(x, y) = coord;
+        if x >= &self.w || y >= &self.h {
+            None
+        } else if let Some(x) = self.data.get(x + y * self.w) {
+            Some(x)
+        } else {
+            unreachable!()
+        }
+    }
+
     /// # Panics
     ///
     /// Will panic if out of bounds.
     pub fn get(&self, coord: &Coord) -> &T {
-        let Coord(x, y) = coord;
-        self.data.get(x + y * self.w).unwrap()
+        self.maybe_get(coord).unwrap()
     }
 
     /// # Panics
