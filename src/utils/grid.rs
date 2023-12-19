@@ -135,6 +135,11 @@ impl<T> Grid<T> {
             .map(|y| (0..self.w).map(|x| Coord(x, y)).collect_vec())
             .collect()
     }
+    pub fn col_coords(&self) -> Vec<Vec<Coord>> {
+        (0..self.w)
+            .map(|x| (0..self.h).map(|y| Coord(x, y)).collect_vec())
+            .collect()
+    }
 
     pub fn maybe_get(&self, coord: &Coord) -> Option<&T> {
         let Coord(x, y) = coord;
