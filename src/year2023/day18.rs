@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
@@ -7,7 +7,7 @@ use std::str::FromStr;
 use crate::challenge::Day;
 use crate::utils::grid::{Coord, Direction, Grid};
 
-pub fn day() -> Day<i32> {
+pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (62, None),
         part2_solutions: None,
@@ -18,13 +18,59 @@ pub fn day() -> Day<i32> {
     }
 }
 
-fn part1(data: &str) -> Result<i32> {
+fn part1(data: &str) -> Result<usize> {
     let grid = to_grid(data)?;
     println!("{}", grid);
+
+    let mut interior: IndexSet<Coord> = IndexSet::new();
+    // let mut interior = 0;
+
+    #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+    enum State {
+        Outside,
+        TrenchToInside,
+        Inside,
+        TrenchToOutside,
+    }
+    use State::*;
+
+    for row in grid.row_coords() {
+        let mut state = State::Outside;
+        for c in row {
+            let cell = grid.get(&c);
+            state = match (state, cell) {
+                (Outside, Cell::Empty) => Outside,
+                (Outside, Cell::InitialHole | Cell::ColoredHole(_)) => TrenchToInside,
+                (TrenchToInside, Cell::Empty) => Inside,
+                (TrenchToInside, Cell::InitialHole | Cell::ColoredHole(_)) => TrenchToInside,
+                (Inside, Cell::Empty) => Inside,
+                (Inside, Cell::InitialHole | Cell::ColoredHole(_)) => TrenchToOutside,
+                (TrenchToOutside, Cell::Empty) => Outside,
+                (TrenchToOutside, Cell::InitialHole | Cell::ColoredHole(_)) => TrenchToOutside,
+            };
+            // println!("{:?}: {:?} -> {:?}", c, cell, state);
+            if state == Inside {
+                interior.insert(c);
+                // interior += 1;
+            }
+        }
+    }
+
+    let grid = grid.transform(|(c, cell)| {
+        if interior.contains(c) {
+            Cell::ColoredHole([0, 0, 0])
+        } else {
+            *cell
+        }
+    });
+    println!("{}", grid);
+
     Ok(0)
+
+    // Ok(grid.iter().filter(|(_, cell)| *cell != Cell::Empty).count() + interior)
 }
 
-fn part2(_data: &str) -> Result<i32> {
+fn part2(_data: &str) -> Result<usize> {
     todo!()
 }
 
@@ -148,7 +194,7 @@ where
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Cell {
     Empty,
     InitialHole,
