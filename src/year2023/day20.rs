@@ -1,17 +1,20 @@
+use std::any::Any;
+use std::collections::VecDeque;
+use std::fmt::{Debug, Display};
+use std::ops::Deref;
+use std::str::FromStr;
+
 use anyhow::{bail, Result};
 use indexmap::map::Entry;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use std::collections::VecDeque;
-use std::fmt::{Debug, Display};
-use std::str::FromStr;
 
 use crate::challenge::Day;
 
-pub fn day() -> Day<usize> {
+pub fn day() -> Day<u64> {
     Day {
         part1_solutions: (32000000, Some(819397964)),
-        part2_solutions: Some((1, None)), // actually there's no official example for part2
+        part2_solutions: Some((0, Some(252667369442479))), // no example for part2
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -19,7 +22,7 @@ pub fn day() -> Day<usize> {
     }
 }
 
-fn part1(data: &str) -> Result<usize> {
+fn part1(data: &str) -> Result<u64> {
     let puzzle: Puzzle = data.parse()?;
     let mut sim = create_simulation(puzzle);
     let mut low_pulses = 0;
@@ -37,44 +40,87 @@ fn part1(data: &str) -> Result<usize> {
     Ok(low_pulses * high_pulses)
 }
 
-fn part2(data: &str) -> Result<usize> {
-    #[derive(Debug)]
-    struct RxModule {
-        low_received: bool,
-    }
-    impl Module for RxModule {
-        fn process(&mut self, pulse: Pulse) -> Vec<Pulse> {
-            if !pulse.high {
-                self.low_received = true;
-            }
-            vec![]
-        }
-        fn done(&self) -> bool {
-            self.low_received
-        }
+fn part2(data: &str) -> Result<u64> {
+    if data.is_empty() {
+        return Ok(0); // no example for part2
     }
 
     let puzzle: Puzzle = data.parse()?;
+
+    // final architecture: node -[x1]-> input -[x4]-> final_node(tg) -> rx
+    let (final_node,) = puzzle.inputs["rx"].iter().collect_tuple().unwrap();
+    let nodes = puzzle.inputs[final_node]
+        .iter()
+        .map(|n| {
+            let (input,) = puzzle.inputs[n].iter().collect_tuple().unwrap();
+            input
+        })
+        .cloned()
+        .collect_vec();
+
     let mut sim = create_simulation(puzzle);
 
-    sim.modules.insert(
-        "rx".to_owned(),
-        Box::new(RxModule {
-            low_received: false,
-        }),
-    );
+    let capacity = 10_000;
 
-    let mut iterations = 0;
-    loop {
+    let mut detectors: IndexMap<String, PeriodDetector<String>> = IndexMap::new();
+
+    for _ in 0..capacity {
         push_button(&mut sim);
-        iterations += 1;
 
-        if sim.modules.get_mut("rx").unwrap().done() {
-            break;
+        for node in nodes.clone() {
+            let module = sim.modules.get_mut(&node).unwrap();
+            let state = module.state();
+            let state: &IndexMap<String, bool> = state.deref().downcast_ref().unwrap();
+            let state_str = format!("{:?}", state);
+            detectors
+                .entry(node.clone())
+                .or_insert_with(|| PeriodDetector::with_capacity(capacity))
+                .push(state_str);
         }
     }
 
-    Ok(iterations)
+    let product = detectors
+        .values()
+        .map(|detector| detector.period().unwrap())
+        .map(|period| period as u64)
+        .product::<u64>();
+
+    Ok(product)
+}
+
+struct PeriodDetector<T> {
+    history: Vec<T>,
+}
+impl<T> PeriodDetector<T>
+where
+    T: PartialEq,
+{
+    fn with_capacity(capacity: usize) -> Self {
+        Self {
+            history: Vec::with_capacity(capacity),
+        }
+    }
+    fn push(&mut self, value: T) {
+        self.history.push(value);
+    }
+
+    fn period(&self) -> Option<usize> {
+        'outer: for period in 1..=self.history.len() / 2 {
+            for i in 0..period {
+                for r in 1.. {
+                    let j = i + r * period;
+                    if j >= self.history.len() {
+                        break;
+                    }
+                    if self.history[i] != self.history[j] {
+                        continue 'outer;
+                    }
+                }
+            }
+            return Some(period);
+        }
+        None
+    }
 }
 
 struct Simulation {
@@ -249,6 +295,9 @@ trait Module: Debug {
     fn done(&self) -> bool {
         false
     }
+    fn state(&self) -> Box<dyn Any> {
+        Box::new(())
+    }
 }
 
 #[derive(Debug)]
@@ -314,12 +363,16 @@ impl Module for ConjunctionModule {
         let low = self.last_received_from_was_high.values().all(|&high| high);
         self.base_module.new_pulses_from(!low, &pulse.destination)
     }
+    fn state(&self) -> Box<dyn Any> {
+        Box::new(self.last_received_from_was_high.clone())
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::testing::trim_lines;
+
+    use super::*;
 
     fn push_button_and_check(simulation: &mut Simulation, expected: &str) {
         let pulses = push_button(simulation);
@@ -422,5 +475,14 @@ mod tests {
         ";
         let data = trim_lines(data);
         assert_eq!(part1(&data).unwrap(), 11687500);
+    }
+
+    #[test]
+    fn period_detector_works() {
+        let mut detector = PeriodDetector::with_capacity(1);
+        for b in [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0] {
+            detector.push(b);
+        }
+        assert_eq!(detector.period(), Some(6));
     }
 }
