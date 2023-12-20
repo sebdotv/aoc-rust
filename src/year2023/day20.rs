@@ -38,9 +38,6 @@ fn part1(data: &str) -> Result<usize> {
 }
 
 fn part2(data: &str) -> Result<usize> {
-    let puzzle: Puzzle = data.parse()?;
-    let mut sim = create_simulation(puzzle);
-
     #[derive(Debug)]
     struct RxModule {
         low_received: bool,
@@ -56,6 +53,10 @@ fn part2(data: &str) -> Result<usize> {
             self.low_received
         }
     }
+
+    let puzzle: Puzzle = data.parse()?;
+    let mut sim = create_simulation(puzzle);
+
     sim.modules.insert(
         "rx".to_owned(),
         Box::new(RxModule {
