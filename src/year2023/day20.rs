@@ -11,11 +11,11 @@ use crate::challenge::Day;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (32000000, Some(819397964)),
-        part2_solutions: None,
+        part2_solutions: Some((1, None)), // actually there's no official example for part2
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
-        distinct_examples: false,
+        distinct_examples: true,
     }
 }
 
@@ -37,8 +37,43 @@ fn part1(data: &str) -> Result<usize> {
     Ok(low_pulses * high_pulses)
 }
 
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
+fn part2(data: &str) -> Result<usize> {
+    let puzzle: Puzzle = data.parse()?;
+    let mut sim = create_simulation(puzzle);
+
+    #[derive(Debug)]
+    struct RxModule {
+        low_received: bool,
+    }
+    impl Module for RxModule {
+        fn process(&mut self, pulse: Pulse) -> Vec<Pulse> {
+            if !pulse.high {
+                self.low_received = true;
+            }
+            vec![]
+        }
+        fn done(&self) -> bool {
+            self.low_received
+        }
+    }
+    sim.modules.insert(
+        "rx".to_owned(),
+        Box::new(RxModule {
+            low_received: false,
+        }),
+    );
+
+    let mut iterations = 0;
+    loop {
+        push_button(&mut sim);
+        iterations += 1;
+
+        if sim.modules.get_mut("rx").unwrap().done() {
+            break;
+        }
+    }
+
+    Ok(iterations)
 }
 
 struct Simulation {
@@ -210,6 +245,9 @@ impl Display for Pulse {
 
 trait Module: Debug {
     fn process(&mut self, pulse: Pulse) -> Vec<Pulse>;
+    fn done(&self) -> bool {
+        false
+    }
 }
 
 #[derive(Debug)]
@@ -217,13 +255,13 @@ struct BaseModule {
     destinations: Vec<String>,
 }
 impl BaseModule {
-    fn new_pulses_from(&self, high: bool, source: String) -> Vec<Pulse> {
+    fn new_pulses_from(&self, high: bool, source: &str) -> Vec<Pulse> {
         self.destinations
             .iter()
             .map(|name| Pulse {
                 destination: name.to_owned(),
                 high,
-                source: source.clone(),
+                source: source.to_owned(),
             })
             .collect_vec()
     }
@@ -236,7 +274,7 @@ struct BroadcastModule {
 impl Module for BroadcastModule {
     fn process(&mut self, pulse: Pulse) -> Vec<Pulse> {
         self.base_module
-            .new_pulses_from(pulse.high, pulse.destination)
+            .new_pulses_from(pulse.high, &pulse.destination)
     }
 }
 
@@ -251,7 +289,8 @@ impl Module for FlipFlopModule {
             vec![]
         } else {
             self.on = !self.on;
-            self.base_module.new_pulses_from(self.on, pulse.destination)
+            self.base_module
+                .new_pulses_from(self.on, &pulse.destination)
         }
     }
 }
@@ -272,7 +311,7 @@ impl Module for ConjunctionModule {
             }
         }
         let low = self.last_received_from_was_high.values().all(|&high| high);
-        self.base_module.new_pulses_from(!low, pulse.destination)
+        self.base_module.new_pulses_from(!low, &pulse.destination)
     }
 }
 
@@ -288,8 +327,8 @@ mod tests {
     }
 
     #[test]
-    fn test_example_step() {
-        let data = day().read_data_file("example").unwrap();
+    fn test_example1_step() {
+        let data = day().read_data_file("example1").unwrap();
         let puzzle: Puzzle = data.parse().unwrap();
         let mut sim = create_simulation(puzzle);
         let expected = r"
