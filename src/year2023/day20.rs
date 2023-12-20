@@ -1,16 +1,16 @@
 use anyhow::{bail, Result};
 use indexmap::map::Entry;
-use indexmap::{IndexMap, IndexSet};
+use indexmap::IndexMap;
 use itertools::Itertools;
 use std::collections::VecDeque;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::challenge::Day;
 
-pub fn day() -> Day<i32> {
+pub fn day() -> Day<usize> {
     Day {
-        part1_solutions: (32000000, None),
+        part1_solutions: (32000000, Some(819397964)),
         part2_solutions: None,
         part1_solver: part1,
         part2_solver: part2,
@@ -19,15 +19,33 @@ pub fn day() -> Day<i32> {
     }
 }
 
-fn part1(data: &str) -> Result<i32> {
+fn part1(data: &str) -> Result<usize> {
     let puzzle: Puzzle = data.parse()?;
-    let modules = create_modules(puzzle);
-    run_simulation(modules);
-
-    Ok(0)
+    let mut sim = create_simulation(puzzle);
+    let mut low_pulses = 0;
+    let mut high_pulses = 0;
+    for _ in 0..1000 {
+        let pulses = push_button(&mut sim);
+        for pulse in pulses {
+            if pulse.high {
+                high_pulses += 1;
+            } else {
+                low_pulses += 1;
+            }
+        }
+    }
+    Ok(low_pulses * high_pulses)
 }
 
-fn run_simulation(mut modules: IndexMap<String, Box<dyn Module>>) -> Vec<Pulse> {
+fn part2(_data: &str) -> Result<usize> {
+    todo!()
+}
+
+struct Simulation {
+    modules: IndexMap<String, Box<dyn Module>>,
+}
+
+fn push_button(simulation: &mut Simulation) -> Vec<Pulse> {
     let mut pulse_queue: VecDeque<Pulse> = VecDeque::new();
     pulse_queue.push_back(Pulse {
         destination: "broadcaster".to_owned(),
@@ -45,12 +63,14 @@ fn run_simulation(mut modules: IndexMap<String, Box<dyn Module>>) -> Vec<Pulse> 
         let pulse = pulse.unwrap();
         processed_pulses.push(pulse.clone());
 
-        // println!("processing pulse {:?}", pulse);
+        let module = simulation.modules.get_mut(&pulse.destination);
+        if module.is_none() {
+            // ignore unknown modules: they do not have any destinations
+            continue;
+        }
+        let module = module.unwrap();
 
-        let module = modules.get_mut(&pulse.destination).unwrap();
         let new_pulses = module.process(pulse);
-
-        // println!("new pulses: {:?}", new_pulses);
 
         new_pulses
             .into_iter()
@@ -60,13 +80,12 @@ fn run_simulation(mut modules: IndexMap<String, Box<dyn Module>>) -> Vec<Pulse> 
     processed_pulses
 }
 
-fn create_modules(puzzle: Puzzle) -> IndexMap<String, Box<dyn Module>> {
-    let mut modules: IndexMap<String, Box<dyn Module>> = puzzle
+fn create_simulation(puzzle: Puzzle) -> Simulation {
+    let modules = puzzle
         .modules
         .into_iter()
         .map(|cfg| {
             let name = cfg.name.clone();
-            println!("creating module {:?}", name);
             let enriched_cfg = EnrichedModuleConfig {
                 module_config: cfg,
                 inputs: puzzle.inputs.get(&name).unwrap_or(&vec![]).clone(),
@@ -75,11 +94,7 @@ fn create_modules(puzzle: Puzzle) -> IndexMap<String, Box<dyn Module>> {
             (name, module)
         })
         .collect();
-    modules
-}
-
-fn part2(_data: &str) -> Result<i32> {
-    todo!()
+    Simulation { modules }
 }
 
 #[derive(Debug)]
@@ -193,10 +208,11 @@ impl Display for Pulse {
     }
 }
 
-trait Module {
+trait Module: Debug {
     fn process(&mut self, pulse: Pulse) -> Vec<Pulse>;
 }
 
+#[derive(Debug)]
 struct BaseModule {
     destinations: Vec<String>,
 }
@@ -213,6 +229,7 @@ impl BaseModule {
     }
 }
 
+#[derive(Debug)]
 struct BroadcastModule {
     base_module: BaseModule,
 }
@@ -223,6 +240,7 @@ impl Module for BroadcastModule {
     }
 }
 
+#[derive(Debug)]
 struct FlipFlopModule {
     base_module: BaseModule,
     on: bool,
@@ -238,6 +256,7 @@ impl Module for FlipFlopModule {
     }
 }
 
+#[derive(Debug)]
 struct ConjunctionModule {
     base_module: BaseModule,
     last_received_from_was_high: IndexMap<String, bool>,
@@ -252,8 +271,8 @@ impl Module for ConjunctionModule {
                 panic!("received pulse from unknown source: {:?}", pulse);
             }
         }
-        let high = self.last_received_from_was_high.values().all(|&high| high);
-        self.base_module.new_pulses_from(high, pulse.destination)
+        let low = self.last_received_from_was_high.values().all(|&high| high);
+        self.base_module.new_pulses_from(!low, pulse.destination)
     }
 }
 
@@ -262,12 +281,17 @@ mod tests {
     use super::*;
     use crate::testing::trim_lines;
 
+    fn push_button_and_check(simulation: &mut Simulation, expected: &str) {
+        let pulses = push_button(simulation);
+        let actual = pulses.iter().map(ToString::to_string).join("\n");
+        assert_eq!(actual, trim_lines(expected));
+    }
+
     #[test]
-    fn test_part1_example() {
+    fn test_example_step() {
         let data = day().read_data_file("example").unwrap();
         let puzzle: Puzzle = data.parse().unwrap();
-        let modules = create_modules(puzzle);
-        let actual = run_simulation(modules);
+        let mut sim = create_simulation(puzzle);
         let expected = r"
             button -low-> broadcaster
             broadcaster -low-> a
@@ -282,9 +306,81 @@ mod tests {
             c -low-> inv
             inv -high-> a        
         ";
-        assert_eq!(
-            actual.iter().map(ToString::to_string).join("\n"),
-            trim_lines(expected)
-        );
+        push_button_and_check(&mut sim, expected);
+    }
+
+    #[test]
+    fn test_extra_example_steps() {
+        let data = r"
+            broadcaster -> a
+            %a -> inv, con
+            &inv -> b
+            %b -> con
+            &con -> output        
+        ";
+        let data = trim_lines(data);
+        let puzzle: Puzzle = data.parse().unwrap();
+        let mut sim = create_simulation(puzzle);
+
+        // push button
+        let expected = r"
+            button -low-> broadcaster
+            broadcaster -low-> a
+            a -high-> inv
+            a -high-> con
+            inv -low-> b
+            con -high-> output
+            b -high-> con
+            con -low-> output
+            ";
+        push_button_and_check(&mut sim, expected);
+
+        // push button a second time
+        let expected = r"
+            button -low-> broadcaster
+            broadcaster -low-> a
+            a -low-> inv
+            a -low-> con
+            inv -high-> b
+            con -high-> output
+        ";
+        push_button_and_check(&mut sim, expected);
+
+        // push button a third time
+        let expected = r"
+            button -low-> broadcaster
+            broadcaster -low-> a
+            a -high-> inv
+            a -high-> con
+            inv -low-> b
+            con -low-> output
+            b -low-> con
+            con -high-> output
+        ";
+        push_button_and_check(&mut sim, expected);
+
+        // push button a fourth time
+        let expected = r"
+            button -low-> broadcaster
+            broadcaster -low-> a
+            a -low-> inv
+            a -low-> con
+            inv -high-> b
+            con -high-> output
+        ";
+        push_button_and_check(&mut sim, expected);
+    }
+
+    #[test]
+    fn test_part1_extra_example() {
+        let data = r"
+            broadcaster -> a
+            %a -> inv, con
+            &inv -> b
+            %b -> con
+            &con -> output        
+        ";
+        let data = trim_lines(data);
+        assert_eq!(part1(&data).unwrap(), 11687500);
     }
 }
