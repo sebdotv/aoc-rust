@@ -2,6 +2,7 @@ use anyhow::{bail, Result};
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 use std::fmt::{Display, Formatter};
+use std::ops::{AddAssign, Mul};
 use std::str::FromStr;
 
 use crate::challenge::Day;
@@ -19,6 +20,60 @@ pub fn day() -> Day<usize> {
 }
 
 fn part1(data: &str) -> Result<usize> {
+    let plan: DigPlan = data.parse()?;
+
+    for step in &plan.steps {
+        println!("{:?}", step);
+    }
+
+    assert_eq!(plan.steps.first().unwrap().dir, Direction::E);
+    assert_eq!(plan.steps.last().unwrap().dir, Direction::N);
+
+    let start = Coord2 { x: 0, y: 0 };
+    let mut coords: Vec<Coord2> = Vec::new();
+    // coords.push(start);
+    let mut pos = start;
+    for step in plan.steps {
+        coords.push(pos);
+        let v = match step.dir {
+            Direction::N => Coord2 { x: 0, y: 1 },
+            Direction::S => Coord2 { x: 0, y: -1 },
+            Direction::W => Coord2 { x: -1, y: 0 },
+            Direction::E => Coord2 { x: 1, y: 0 },
+        } * step.len as isize;
+        pos += v;
+    }
+    assert_eq!(pos, start);
+    // coords.push(pos);
+
+    coords.reverse(); // we want counter-clockwise
+
+    println!("{} coords", coords.len());
+    for c in &coords {
+        println!("{:?}", c);
+    }
+
+    // coords
+    //     .iter()
+    //     .zip(coords.iter().skip(1))
+    //     .for_each(|(c1, c2)| {
+    //         area_double += c1.x * c2.y - c1.y * c2.x;
+    //         println!("{}", area_double);
+    //     });
+
+    // for i in 0..coords.len() {
+    //     let j = (i + 1) % coords.len();
+    //     let c1 = coords[i];
+    //     let c2 = coords[j];
+    //     area_double += c1.x * c2.y - c1.y * c2.x;
+    //     println!("{}", area_double);
+    // }
+
+    let sum = trench_area(&coords);
+
+    Ok(sum)
+}
+fn part1_old(data: &str) -> Result<usize> {
     let grid = to_grid(data)?;
     println!("{}", grid);
 
@@ -144,10 +199,25 @@ impl FromStr for Step {
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Debug, Hash, Eq, PartialEq, Copy, Clone)]
 struct Coord2 {
-    x: i32,
-    y: i32,
+    x: isize,
+    y: isize,
+}
+impl Mul<isize> for Coord2 {
+    type Output = Self;
+    fn mul(self, rhs: isize) -> Self::Output {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+impl AddAssign for Coord2 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+    }
 }
 
 struct UnboundedGrid<T> {
@@ -211,27 +281,103 @@ impl Display for Cell {
     }
 }
 
+fn trench_area(coords: &[Coord2]) -> usize {
+    // Area of a Convex Polygon (Shoelace formula) + add length of outer trench
+    // https://www.mathwords.com/a/area_convex_polygon.htm
+
+    let mut area_double = 0;
+    let mut border = 0;
+    coords
+        .iter()
+        .zip(coords.iter().cycle().skip(1))
+        .for_each(|(c1, c2)| {
+            println!("{:?} {:?}", c1, c2);
+            area_double += c1.x * c2.y - c1.y * c2.x;
+            border += (c2.x - c1.x).abs() + (c2.y - c1.y).abs();
+        });
+    (area_double.abs() + border) as usize / 2 + 1
+}
+
+fn area_old(coords: &[Coord2]) -> usize {
+    // Area of a Convex Polygon
+    // https://www.mathwords.com/a/area_convex_polygon.htm
+
+    let mut area_double = 0;
+    coords
+        .iter()
+        .zip(coords.iter().cycle().skip(1))
+        .for_each(|(c1, c2)| {
+            area_double += c1.x * c2.y - c2.x * c1.y;
+        });
+    (area_double.abs() / 2) as usize
+}
+
+fn area2_2(coords: &[Coord2]) -> usize {
+    // Area of a non-convex polygon
+    // https://en.wikipedia.org/wiki/Shoelace_formula#Triangle_formula
+
+    let mut area2 = 0;
+
+    for i in 0..coords.len() {
+        let i_plus_1 = (i + 1) % coords.len();
+        let i_minus_1 = ((i as isize - 1).rem_euclid(coords.len() as isize)) as usize;
+        let c_i = coords[i];
+        let c_i_plus_1 = coords[i_plus_1];
+        let c_i_minus_1 = coords[i_minus_1];
+        area2 += c_i.x * (c_i_plus_1.y - c_i_minus_1.y);
+        println!("{}", area2);
+    }
+
+    // coords
+    //     .iter()
+    //     .zip(coords.iter().cycle().skip(1))
+    //     .for_each(|(c1, c2)| {
+    //         area_double += c1.x * c2.y - c2.x * c1.y;
+    //     });
+    area2.abs() as usize
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::testing::trim_lines;
 
     #[test]
-    fn test_trench() {
-        let data = day().read_data_file("example").unwrap();
-        let grid = to_grid(&data).unwrap();
-        let expected = r"
-            #######
-            #.....#
-            ###...#
-            ..#...#
-            ..#...#
-            ###.###
-            #...#..
-            ##..###
-            .#....#
-            .######
-        ";
-        assert_eq!(grid.to_string().trim(), trim_lines(expected));
+    fn test_area_bad() {
+        let coords = vec![(1, 5), (-4, 3), (5, 1), (2, 5)];
+        let coords = coords
+            .into_iter()
+            .map(|(x, y)| Coord2 { x, y })
+            .collect_vec();
+        assert_eq!(trench_area(&coords), 30);
     }
+
+    #[test]
+    fn test_area() {
+        let coords = vec![(1, 6), (3, 1), (7, 2), (4, 4), (8, 5)];
+        let coords = coords
+            .into_iter()
+            .map(|(x, y)| Coord2 { x, y })
+            .collect_vec();
+        assert_eq!(trench_area(&coords), 33);
+    }
+
+    // #[test]
+    // fn test_trench() {
+    //     let data = day().read_data_file("example").unwrap();
+    //     let grid = to_grid(&data).unwrap();
+    //     let expected = r"
+    //         #######
+    //         #.....#
+    //         ###...#
+    //         ..#...#
+    //         ..#...#
+    //         ###.###
+    //         #...#..
+    //         ##..###
+    //         .#....#
+    //         .######
+    //     ";
+    //     assert_eq!(grid.to_string().trim(), trim_lines(expected));
+    // }
 }
