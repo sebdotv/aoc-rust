@@ -43,7 +43,7 @@ fn part1(data: &str) -> Result<u32> {
         .iter()
         .filter(|(x_range, y)| {
             x_range.clone().any(|x| {
-                grid.neighbors(&Coord(x, *y))
+                grid.neighbors_incl_diag(&Coord(x, *y))
                     .iter()
                     .any(|p| symbols.contains(p))
             })
@@ -95,7 +95,7 @@ fn part2(data: &str) -> Result<u32> {
             x_range
                 .clone()
                 .flat_map(|x| {
-                    let neighbors = grid.neighbors(&Coord(x, *y));
+                    let neighbors = grid.neighbors_incl_diag(&Coord(x, *y));
                     neighbors
                         .iter()
                         .filter(|coord| *grid.get(coord) == '*')
