@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
+use crate::utils::f64_conversions::{try_f64_from_u64, try_u64_from_f64};
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use strum_macros::EnumIter;
@@ -225,6 +226,12 @@ impl<T> Grid<T> {
             data: self.coords().map(|c| f((&c, self.get(&c)))).collect_vec(),
         }
     }
+
+    pub fn map_virtual(&self, x: isize, y: isize) -> Coord {
+        let x = x.rem_euclid(isize::try_from(self.w).unwrap()) as usize;
+        let y = y.rem_euclid(isize::try_from(self.h).unwrap()) as usize;
+        Coord(x, y)
+    }
 }
 
 impl<T> Grid<T>
@@ -263,5 +270,26 @@ where
             .then_some(Coord(self.curr % self.grid.w, self.curr / self.grid.w));
         self.curr += 1;
         current.map(|coord| (coord, *self.grid.get(&coord)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn map_virtual_works() {
+        let grid: Grid<u8> = Grid::from_lines(&["123", "456"]).unwrap();
+        assert_eq!(grid.map_virtual(0, 0), Coord(0, 0));
+        assert_eq!(grid.map_virtual(-1, 0), Coord(2, 0));
+        assert_eq!(grid.map_virtual(0, -1), Coord(0, 1));
+        assert_eq!(grid.map_virtual(3, 0), Coord(0, 0));
+        assert_eq!(grid.map_virtual(0, 2), Coord(0, 0));
+        assert_eq!(grid.map_virtual(-10, -10), Coord(2, 0));
+    }
+    #[test]
+    fn try_u64_from_f64_works() {
+        assert_eq!(try_u64_from_f64(1.0), Some(1));
+        assert_eq!(try_u64_from_f64(1.5), None);
     }
 }
