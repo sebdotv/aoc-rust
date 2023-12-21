@@ -1,7 +1,6 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use crate::utils::f64_conversions::{try_f64_from_u64, try_u64_from_f64};
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use strum_macros::EnumIter;
@@ -227,6 +226,9 @@ impl<T> Grid<T> {
         }
     }
 
+    /// # Panics
+    ///
+    /// Will panic if `rem_euclid` panics or if grid width/height cannot be converted to isize (unlikely).
     pub fn map_virtual(&self, x: isize, y: isize) -> Coord {
         let x = x.rem_euclid(isize::try_from(self.w).unwrap()) as usize;
         let y = y.rem_euclid(isize::try_from(self.h).unwrap()) as usize;
@@ -286,10 +288,5 @@ mod tests {
         assert_eq!(grid.map_virtual(3, 0), Coord(0, 0));
         assert_eq!(grid.map_virtual(0, 2), Coord(0, 0));
         assert_eq!(grid.map_virtual(-10, -10), Coord(2, 0));
-    }
-    #[test]
-    fn try_u64_from_f64_works() {
-        assert_eq!(try_u64_from_f64(1.0), Some(1));
-        assert_eq!(try_u64_from_f64(1.5), None);
     }
 }

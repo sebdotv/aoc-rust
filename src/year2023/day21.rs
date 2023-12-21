@@ -5,6 +5,7 @@ use polyfit_rs::polyfit_rs::polyfit;
 use strum::IntoEnumIterator;
 
 use crate::challenge::Day;
+use crate::utils::f64_conversions::{try_f64_from_usize, try_usize_from_f64};
 use crate::utils::grid::{Coord, Direction, Grid};
 
 pub fn day() -> Day<usize> {
@@ -28,35 +29,30 @@ fn part1(data: &str) -> Result<usize> {
 }
 
 fn part2(data: &str) -> Result<usize> {
+    const STEPS: usize = 26501365;
+
     if data.is_empty() {
         return Ok(0);
     }
     let grid: Grid<char> = data.parse()?;
 
-    let n = 26501365;
-
-    let (x, y): (Vec<f64>, Vec<f64>) = (0..3)
+    let (xs, ys): (Vec<f64>, Vec<f64>) = (0..3)
         .map(|i| {
-            let steps = n % grid.w + i * grid.w;
-            (steps as f64, part2_reach(&grid, steps) as f64)
+            let steps = STEPS % grid.w + i * grid.w;
+            (
+                try_f64_from_usize(steps).unwrap(),
+                try_f64_from_usize(part2_reach(&grid, steps)).unwrap(),
+            )
         })
         .unzip();
 
-    println!("x: {:?}", x);
-    println!("y: {:?}", y);
+    let coeffs = polyfit(&xs, &ys, 2).unwrap();
+    let (coeff_c, coeff_b, coeff_a) = coeffs.iter().collect_tuple().unwrap();
 
-    // let test_vectors = vec![(65, 3744), (196, 33417), (327, 92680)];
-    //
-    // let x = [65f64, 196f64, 327f64];
-    // let y = [3744f64, 33417f64, 92680f64];
-    let coeffs = polyfit(&x, &y, 2).unwrap();
-    let (c, b, a) = coeffs.iter().collect_tuple().unwrap();
+    let x = try_f64_from_usize(STEPS).unwrap();
+    let y = (coeff_a * x * x) + (coeff_b * x) + coeff_c;
 
-    let x = n as f64;
-    let y = (a * x * x) + (b * x) + c;
-    println!("y: {}", y);
-
-    Ok(y as usize)
+    Ok(try_usize_from_f64(y.floor()).unwrap())
 }
 
 fn part1_reach(grid: &Grid<char>, steps: usize) -> Vec<Coord> {
@@ -126,15 +122,16 @@ fn part2_reach(grid: &Grid<char>, steps: usize) -> usize {
         .unwrap();
 
     let Coord(x, y) = start;
+    let (x, y) = (isize::try_from(x).unwrap(), isize::try_from(y).unwrap());
 
     bfs_reach(
         Pos {
-            coord: (x as isize, y as isize),
+            coord: (x, y),
             steps: 0,
         },
         successors,
     )
-    .take_while(|pos| pos.steps <= steps + 10)
+    .take_while(|pos| pos.steps <= steps)
     .filter_map(|pos| (pos.steps == steps).then_some(pos.coord))
     .count()
 }
@@ -142,9 +139,6 @@ fn part2_reach(grid: &Grid<char>, steps: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use crate::testing::trim_lines;
-    use bigdecimal::num_bigint::BigInt;
-    use bigdecimal::BigDecimal;
-    use polyfit_rs::polyfit_rs::polyfit;
 
     use super::*;
 
