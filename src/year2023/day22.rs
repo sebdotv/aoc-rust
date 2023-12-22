@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::{Index, RangeInclusive};
+use std::ops::RangeInclusive;
 use std::str::FromStr;
 
 use anyhow::{bail, Result};
@@ -10,7 +10,7 @@ use crate::challenge::Day;
 
 pub fn day() -> Day<usize> {
     Day {
-        part1_solutions: (5, None),
+        part1_solutions: (5, Some(477)),
         part2_solutions: None,
         part1_solver: part1,
         part2_solver: part2,
@@ -26,12 +26,12 @@ fn part1(data: &str) -> Result<usize> {
         .collect::<Result<Vec<_>>>()?;
 
     let mut grid = BrickGrid::from(bricks);
-    println!("x view:");
-    println!("{}", grid.x_view());
-    println!();
-    println!("y view:");
-    println!("{}", grid.y_view());
-    println!();
+    // println!("x view:");
+    // println!("{}", grid.x_view());
+    // println!();
+    // println!("y view:");
+    // println!("{}", grid.y_view());
+    // println!();
 
     let bricks_asc: Vec<BrickId> = grid
         .bricks
@@ -69,26 +69,12 @@ fn part1(data: &str) -> Result<usize> {
         }
     }
 
-    println!("x view:");
-    println!("{}", grid.x_view());
-    println!();
-    println!("y view:");
-    println!("{}", grid.y_view());
-    println!();
-
-    // let map = grid
-    //     .bricks
-    //     .keys()
-    //     .flat_map(|id| {
-    //         grid.supporters(id)
-    //             .into_iter()
-    //             .map(|supporter| (id, supporter))
-    //             .collect_vec()
-    //     })
-    //     .inspect(|(id, supporter)| {
-    //         println!("{}: supported by {:?}", id, supporter);
-    //     })
-    //     .into_group_map_by(|(_, supporter)| supporter.clone());
+    // println!("x view:");
+    // println!("{}", grid.x_view());
+    // println!();
+    // println!("y view:");
+    // println!("{}", grid.y_view());
+    // println!();
 
     let supporters: IndexMap<BrickId, Vec<BrickId>> = grid
         .bricks
@@ -104,27 +90,20 @@ fn part1(data: &str) -> Result<usize> {
     let mut supporting: IndexMap<BrickId, Vec<BrickId>> = IndexMap::new();
     for id in grid.bricks.keys() {
         for supporter in grid.supporters(id) {
-            println!("{}: supported by {:?}", id, supporter);
+            // println!("{}: supported by {:?}", id, supporter);
             supporting
                 .entry(supporter.clone())
                 .or_default()
                 .push(id.clone());
         }
     }
-    println!("map: {:?}", supporting);
-
-    // for id in grid.bricks.keys() {
-    //     let supporters = grid.supporters(id);
-    //     if supporters.len() > 1 {
-    //         println!("{}: unsupported", id);
-    //     }
-    // }
+    // println!("map: {:?}", supporting);
 
     let mut removable = 0;
 
     for id in grid.bricks.keys() {
         let can_be_removed = if let Some(supporting) = supporting.get(id) {
-            println!("{}: supporting {:?}", id, supporting);
+            // println!("{}: supporting {:?}", id, supporting);
             supporting.iter().all(|supported| {
                 let supporters = supporters.get(supported).unwrap();
                 supporters.len() > 1
@@ -133,7 +112,7 @@ fn part1(data: &str) -> Result<usize> {
             true
         };
         if can_be_removed {
-            println!("{} can be removed", id);
+            // println!("{} can be removed", id);
             removable += 1;
         }
     }
@@ -313,12 +292,14 @@ impl BrickGrid {
         self.add_brick(id.clone(), brick);
     }
 
+    #[allow(dead_code)]
     pub fn x_view(&self) -> LateralView<'_> {
         LateralView {
             grid: self,
             x_side: true,
         }
     }
+    #[allow(dead_code)]
     pub fn y_view(&self) -> LateralView<'_> {
         LateralView {
             grid: self,
