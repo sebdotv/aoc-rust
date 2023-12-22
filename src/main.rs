@@ -23,6 +23,9 @@ struct Args {
     #[arg(long)]
     latest: bool,
 
+    #[arg(long)]
+    part: Option<u8>,
+
     #[arg(long, value_enum)]
     only: Option<Only>,
 }
@@ -62,19 +65,26 @@ fn main() -> Result<()> {
     } else {
         days
     };
+    let part = args.part.map(Part::try_from).transpose()?;
+    let mut ok = true;
     for ref day in challenge_days {
-        match day {
-            DayWrapper::I32(day) => check_day(day, args.only)?,
-            DayWrapper::U32(day) => check_day(day, args.only)?,
-            DayWrapper::U64(day) => check_day(day, args.only)?,
-            DayWrapper::Usize(day) => check_day(day, args.only)?,
-            DayWrapper::String(day) => check_day(day, args.only)?,
-        }
+        ok &= match day {
+            DayWrapper::I32(day) => check_day(day, part, args.only)?,
+            DayWrapper::U32(day) => check_day(day, part, args.only)?,
+            DayWrapper::U64(day) => check_day(day, part, args.only)?,
+            DayWrapper::Usize(day) => check_day(day, part, args.only)?,
+            DayWrapper::String(day) => check_day(day, part, args.only)?,
+        };
     }
-    Ok(())
+
+    if ok {
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("Some tests failed"))
+    }
 }
 
-fn check_day<T>(day: &Day<T>, only: Option<Only>) -> Result<()>
+fn check_day<T>(day: &Day<T>, part_filter: Option<Part>, only: Option<Only>) -> Result<bool>
 where
     T: Eq + Debug,
 {
@@ -84,14 +94,18 @@ where
         Some(day.read_data_file("example")?)
     };
     let input_data = day.read_data_file("input")?;
+    let mut ok = true;
     for part in Part::iter() {
+        if part_filter.is_some() && part != part_filter.unwrap() {
+            continue;
+        }
         let part_example_data = if example_data.is_none() {
             let file_name = format!("example{}", part as u8);
             Some(day.read_data_file(file_name.as_str())?)
         } else {
             None
         };
-        check_part(
+        ok &= check_part(
             day,
             part,
             part_example_data
@@ -103,7 +117,7 @@ where
             only,
         )?;
     }
-    Ok(())
+    Ok(ok)
 }
 
 fn check_part<T>(
@@ -163,10 +177,11 @@ where
 {
     let (actual, duration) = actual_result;
     let duration_str = || {
-        let text = format!("{:.1} µs", duration.as_secs_f64() * 1e6);
         (if duration.as_millis() >= 200 {
+            let text = format!("{:.1} ms", duration.as_secs_f64() * 1e3);
             text.bold().truecolor(255, 83, 0) // orange
         } else {
+            let text = format!("{:.1} µs", duration.as_secs_f64() * 1e6);
             text.yellow()
         })
         .to_string()

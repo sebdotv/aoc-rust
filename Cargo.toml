@@ -8,20 +8,28 @@ repository = "https://github.com/sebdotv/aoc-rust"
 keywords = ["advent-of-code", "aoc", "rust"]
 
 [dependencies]
-anyhow = "1.0.75"
-colored = "2.0.4"
+anyhow = "1.0.76"
+chrono = "0.4.31"
+clap = { version = "4.4.11", features = ["derive"] }
+colored = "2.1.0"
+hex = "0.4.3"
 indexmap = "2.1.0"
 itertools = "0.12.0"
+lazy_static = "1.4.0"
+num_enum = "0.7.1"
+pathfinding = "4.8.0"
+polyfit-rs = "0.2.1"
 regex = "1.10.2"
 strum = "0.25.0"
 strum_macros = "0.25.3"
-thiserror = "1.0.50"
-lazy_static = "1.4.0"
-clap = { version = "4.4.10", features = ["derive"] }
-chrono = "0.4.31"
+thiserror = "1.0.51"
 
 [dev-dependencies]
 criterion = "0.5.1"
+indoc = "2.0.4"
+
+[profile.release]
+debug = 1 # to profile a release build effectively you might need to enable source line debug info
 
 [[bench]]
 name = "bench"
@@ -31,6 +39,7 @@ harness = false
 pedantic = { level = "warn", priority = 0 }
 enum_glob_use = { level = "allow", priority = 1 } # part of pedantic
 missing_errors_doc = { level = "allow", priority = 1 } # part of pedantic
+must_use_candidate = { level = "allow", priority = 1 } # part of pedantic
 uninlined_format_args = { level = "allow", priority = 1 } # part of pedantic
 unreadable_literal = { level = "allow", priority = 1 } # part of pedantic
 cargo = { level = "warn", priority = 0 }

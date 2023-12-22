@@ -155,10 +155,11 @@ impl FromStr for Node {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testing::trim_lines;
 
     #[test]
-    fn part1_extra_examples() -> Result<()> {
-        let f = |s: &str| part1(s.trim().lines().map(str::trim).join("\n").as_str());
+    fn part1_extra_example() -> Result<()> {
+        let f = |s: &str| part1(&trim_lines(s));
         assert_eq!(
             f(r"
                 LLR

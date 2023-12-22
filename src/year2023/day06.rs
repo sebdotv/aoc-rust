@@ -4,9 +4,9 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use crate::challenge::Day;
-use crate::f64_utils::{try_f64_from_u64, try_u64_from_f64};
+use crate::utils::f64_conversions::{try_f64_from_usize, try_usize_from_f64};
 
-pub fn day() -> Day<u64> {
+pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (288, Some(800280)),
         part2_solutions: Some((71503, Some(45128024))),
@@ -19,8 +19,8 @@ pub fn day() -> Day<u64> {
 
 #[derive(Debug)]
 struct Race {
-    time: u64,
-    distance: u64,
+    time: usize,
+    distance: usize,
 }
 
 struct Puzzle {
@@ -36,7 +36,7 @@ impl FromStr for Puzzle {
             .map(|line| {
                 line.split_whitespace()
                     .dropping(1)
-                    .map(|s| s.parse::<u64>().unwrap())
+                    .map(|s| s.parse::<usize>().unwrap())
                     .collect_vec()
             })
             .collect_tuple()
@@ -52,27 +52,27 @@ impl FromStr for Puzzle {
     }
 }
 
-fn part1(data: &str) -> Result<u64> {
+fn part1(data: &str) -> Result<usize> {
     let races = data.parse::<Puzzle>()?.races;
 
-    let product = races.iter().map(ways_to_beat).product::<u64>();
+    let product = races.iter().map(ways_to_beat).product::<usize>();
 
     Ok(product)
 }
 
 #[deprecated]
 #[allow(dead_code)]
-fn ways_to_beat_slow(race: &Race) -> u64 {
+fn ways_to_beat_slow(race: &Race) -> usize {
     (0..=race.time)
         .map(|hold| {
             let speed = hold;
             speed * (race.time - hold) // dist
         })
         .filter(|dist| *dist > race.distance)
-        .count() as u64
+        .count()
 }
 
-fn ways_to_beat(race: &Race) -> u64 {
+fn ways_to_beat(race: &Race) -> usize {
     // x: time
     // y: distance
     // T = race.time
@@ -81,12 +81,12 @@ fn ways_to_beat(race: &Race) -> u64 {
     // i.e. quadratic roots of a=-1, b=T, c=-D
     // which are: x = (-b +- sqrt(b^2 - 4ac)) / 2a
     let a = -1.0;
-    let b = try_f64_from_u64(race.time).unwrap();
-    let c = -try_f64_from_u64(race.distance + 1).unwrap();
+    let b = try_f64_from_usize(race.time).unwrap();
+    let c = -try_f64_from_usize(race.distance + 1).unwrap();
     let roots = quadratic_roots(a, b, c);
     let (x1, x2) = roots;
-    let x1 = try_u64_from_f64(x1.ceil()).unwrap();
-    let x2 = try_u64_from_f64(x2.floor()).unwrap();
+    let x1 = try_usize_from_f64(x1.ceil()).unwrap();
+    let x2 = try_usize_from_f64(x2.floor()).unwrap();
     x2 - x1 + 1
 }
 
@@ -98,10 +98,10 @@ fn quadratic_roots(a: f64, b: f64, c: f64) -> (f64, f64) {
     (x1, x2)
 }
 
-fn part2(data: &str) -> Result<u64> {
+fn part2(data: &str) -> Result<usize> {
     let races = data.parse::<Puzzle>()?.races;
-    let time = races.iter().map(|r| r.time).join("").parse::<u64>()?;
-    let distance = races.iter().map(|r| r.distance).join("").parse::<u64>()?;
+    let time = races.iter().map(|r| r.time).join("").parse::<usize>()?;
+    let distance = races.iter().map(|r| r.distance).join("").parse::<usize>()?;
     let race = Race { time, distance };
 
     let ways_to_beat = ways_to_beat(&race);

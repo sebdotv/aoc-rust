@@ -2,6 +2,7 @@ use std::ffi::OsStr;
 
 use anyhow::{anyhow, Result};
 use chrono::NaiveDate;
+use num_enum::TryFromPrimitive;
 use strum_macros::EnumIter;
 
 use crate::input::read_data_file;
@@ -86,8 +87,9 @@ impl SourceFileLocation {
     }
 }
 
-#[derive(Debug, EnumIter, strum_macros::Display, Copy, Clone)]
+#[derive(Debug, EnumIter, strum_macros::Display, Copy, Clone, Eq, PartialEq, TryFromPrimitive)]
 #[strum(serialize_all = "lowercase")]
+#[repr(u8)]
 pub enum Part {
     Part1 = 1,
     Part2 = 2,
