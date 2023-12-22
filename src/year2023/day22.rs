@@ -11,7 +11,7 @@ use crate::challenge::Day;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (5, Some(477)),
-        part2_solutions: None,
+        part2_solutions: Some((7, Some(61555))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -20,6 +20,98 @@ pub fn day() -> Day<usize> {
 }
 
 fn part1(data: &str) -> Result<usize> {
+    let (grid, supporters, supporting) = common_part(data)?;
+
+    let mut removable = 0;
+
+    for id in grid.bricks.keys() {
+        let can_be_removed = if let Some(supporting) = supporting.get(id) {
+            // println!("{}: supporting {:?}", id, supporting);
+            supporting.iter().all(|supported| {
+                let supporters = supporters.get(supported).unwrap();
+                supporters.len() > 1
+            })
+        } else {
+            true
+        };
+        if can_be_removed {
+            // println!("{} can be removed", id);
+            removable += 1;
+        }
+    }
+
+    Ok(removable)
+}
+
+fn part2(data: &str) -> Result<usize> {
+    let (grid, supporters, supporting) = common_part(data)?;
+
+    #[derive(Clone)]
+    struct State {
+        // ids: Vec<BrickId>,
+        supporters: IndexMap<BrickId, IndexSet<BrickId>>,
+        supporting: IndexMap<BrickId, IndexSet<BrickId>>,
+    }
+    let state = State {
+        // ids: grid.bricks.keys().cloned().collect(),
+        supporters: supporters
+            .into_iter()
+            .map(|(k, v)| (k, IndexSet::from_iter(v)))
+            .collect(),
+        supporting: supporting
+            .into_iter()
+            .map(|(k, v)| (k, IndexSet::from_iter(v)))
+            .collect(),
+    };
+
+    let mut sum = 0;
+
+    for id in grid.bricks.keys() {
+        // simulate removing id
+        let mut state = state.clone();
+
+        let mut remove_queue: Vec<BrickId> = vec![];
+
+        remove_queue.push(id.clone());
+
+        let mut removed = 0;
+
+        while let Some(to_remove) = remove_queue.pop() {
+            let supporting = state.supporting.remove(&to_remove).unwrap_or_default();
+
+            for supported in supporting {
+                let supporters = state.supporters.get_mut(&supported).unwrap();
+                let removed = supporters.remove(&to_remove);
+                assert!(removed);
+                if supporters.is_empty() {
+                    remove_queue.push(supported);
+                }
+            }
+
+            removed += 1;
+        }
+
+        println!("removing {} would cause other {} removals", id, removed - 1);
+
+        // state.ids.retain(|x| x != id);
+        // state.supporters.remove(id);
+        // for supporting in state.supporting.values_mut() {
+        //     supporting.retain(|x| x != id);
+        // }
+
+        sum += removed - 1;
+    }
+
+    Ok(sum)
+}
+
+fn common_part(
+    data: &str,
+) -> Result<(
+    BrickGrid,
+    IndexMap<BrickId, Vec<BrickId>>,
+    IndexMap<BrickId, Vec<BrickId>>,
+)> {
     let bricks = data
         .lines()
         .map(Brick::from_str)
@@ -99,29 +191,7 @@ fn part1(data: &str) -> Result<usize> {
     }
     // println!("map: {:?}", supporting);
 
-    let mut removable = 0;
-
-    for id in grid.bricks.keys() {
-        let can_be_removed = if let Some(supporting) = supporting.get(id) {
-            // println!("{}: supporting {:?}", id, supporting);
-            supporting.iter().all(|supported| {
-                let supporters = supporters.get(supported).unwrap();
-                supporters.len() > 1
-            })
-        } else {
-            true
-        };
-        if can_be_removed {
-            // println!("{} can be removed", id);
-            removable += 1;
-        }
-    }
-
-    Ok(removable)
-}
-
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
+    Ok((grid, supporters, supporting))
 }
 
 #[derive(Debug, Clone)]
