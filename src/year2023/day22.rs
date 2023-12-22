@@ -31,7 +31,7 @@ fn part1(data: &str) -> Result<usize> {
     let mut grid = BrickGrid::new();
     for (i, brick) in bricks.iter().enumerate() {
         let brick_id = if bricks.len() <= 26 {
-            ((b'A' + i as u8) as char).to_string()
+            ((b'A' + u8::try_from(i).unwrap()) as char).to_string()
         } else {
             i.to_string()
         };
@@ -124,9 +124,7 @@ impl Brick {
     fn min_z(&self) -> usize {
         use Brick::*;
         match self {
-            Cube { z, .. } => *z,
-            XLine { z, .. } => *z,
-            YLine { z, .. } => *z,
+            Cube { z, .. } | XLine { z, .. } | YLine { z, .. } => *z,
             ZLine { z, .. } => *z.start(),
         }
     }
@@ -158,6 +156,7 @@ impl Brick {
             ZLine { x, y, z } => ZLine {
                 x,
                 y,
+                #[allow(clippy::range_minus_one)]
                 z: (z.start() - 1)..=(z.end() - 1),
             },
         }
@@ -235,7 +234,7 @@ impl BrickGrid {
             return false;
         }
         for coord in brick.coords() {
-            if let Some(_) = self.brick_at(coord) {
+            if self.brick_at(coord).is_some() {
                 return false;
             }
         }
@@ -243,7 +242,7 @@ impl BrickGrid {
             let (x, y, z) = coord;
             self.z.entry(z).or_default().insert((x, y), id.clone());
         }
-        self.bricks.insert(id.clone(), brick);
+        self.bricks.insert(id, brick);
         true
     }
 
