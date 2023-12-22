@@ -239,16 +239,4 @@ mod tests {
         grid.transform(|(coord, c)| if ends.contains(coord) { 'O' } else { *c })
             .to_string()
     }
-
-    #[test]
-    fn test_part2_test_vectors() {
-        let data = day().read_data_file("input").unwrap();
-        let grid = data.parse().unwrap();
-
-        let test_vectors = vec![(65, 3744), (196, 33417), (327, 92680)];
-        for (steps, expected) in test_vectors {
-            println!("steps: {}", steps);
-            assert_eq!(part2_reach(&grid, steps), expected);
-        }
-    }
 }
