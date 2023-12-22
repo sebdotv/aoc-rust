@@ -177,10 +177,11 @@ where
 {
     let (actual, duration) = actual_result;
     let duration_str = || {
-        let text = format!("{:.1} µs", duration.as_secs_f64() * 1e6);
         (if duration.as_millis() >= 200 {
+            let text = format!("{:.1} ms", duration.as_secs_f64() * 1e3);
             text.bold().truecolor(255, 83, 0) // orange
         } else {
+            let text = format!("{:.1} µs", duration.as_secs_f64() * 1e6);
             text.yellow()
         })
         .to_string()
