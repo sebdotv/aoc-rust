@@ -20,13 +20,16 @@ pub fn day() -> Day<usize> {
 }
 
 fn part1(data: &str) -> Result<usize> {
-    let (grid, supporters, supporting) = common_part(data)?;
+    let CommonPart {
+        grid,
+        supporters,
+        supporting,
+    } = common_part(data)?;
 
     let mut removable = 0;
 
     for id in grid.bricks.keys() {
         let can_be_removed = if let Some(supporting) = supporting.get(id) {
-            // println!("{}: supporting {:?}", id, supporting);
             supporting.iter().all(|supported| {
                 let supporters = supporters.get(supported).unwrap();
                 supporters.len() > 1
@@ -35,7 +38,6 @@ fn part1(data: &str) -> Result<usize> {
             true
         };
         if can_be_removed {
-            // println!("{} can be removed", id);
             removable += 1;
         }
     }
@@ -44,41 +46,39 @@ fn part1(data: &str) -> Result<usize> {
 }
 
 fn part2(data: &str) -> Result<usize> {
-    let (grid, supporters, supporting) = common_part(data)?;
-
     #[derive(Clone)]
     struct State {
-        // ids: Vec<BrickId>,
         supporters: IndexMap<BrickId, IndexSet<BrickId>>,
         supporting: IndexMap<BrickId, IndexSet<BrickId>>,
     }
+
+    let CommonPart {
+        grid,
+        supporters,
+        supporting,
+    } = common_part(data)?;
+
+    let to_set_values = |m: IndexMap<BrickId, Vec<BrickId>>| {
+        m.into_iter()
+            .map(|(k, v)| (k, IndexSet::from_iter(v)))
+            .collect()
+    };
+
     let state = State {
-        // ids: grid.bricks.keys().cloned().collect(),
-        supporters: supporters
-            .into_iter()
-            .map(|(k, v)| (k, IndexSet::from_iter(v)))
-            .collect(),
-        supporting: supporting
-            .into_iter()
-            .map(|(k, v)| (k, IndexSet::from_iter(v)))
-            .collect(),
+        supporters: to_set_values(supporters),
+        supporting: to_set_values(supporting),
     };
 
     let mut sum = 0;
 
     for id in grid.bricks.keys() {
-        // simulate removing id
         let mut state = state.clone();
-
         let mut remove_queue: Vec<BrickId> = vec![];
-
         remove_queue.push(id.clone());
-
         let mut removed = 0;
 
         while let Some(to_remove) = remove_queue.pop() {
             let supporting = state.supporting.remove(&to_remove).unwrap_or_default();
-
             for supported in supporting {
                 let supporters = state.supporters.get_mut(&supported).unwrap();
                 let removed = supporters.remove(&to_remove);
@@ -87,43 +87,28 @@ fn part2(data: &str) -> Result<usize> {
                     remove_queue.push(supported);
                 }
             }
-
             removed += 1;
         }
 
-        println!("removing {} would cause other {} removals", id, removed - 1);
-
-        // state.ids.retain(|x| x != id);
-        // state.supporters.remove(id);
-        // for supporting in state.supporting.values_mut() {
-        //     supporting.retain(|x| x != id);
-        // }
-
-        sum += removed - 1;
+        sum += removed - 1; // ignore self-removal
     }
 
     Ok(sum)
 }
 
-fn common_part(
-    data: &str,
-) -> Result<(
-    BrickGrid,
-    IndexMap<BrickId, Vec<BrickId>>,
-    IndexMap<BrickId, Vec<BrickId>>,
-)> {
+struct CommonPart {
+    grid: BrickGrid,
+    supporters: IndexMap<BrickId, Vec<BrickId>>,
+    supporting: IndexMap<BrickId, Vec<BrickId>>,
+}
+
+fn common_part(data: &str) -> Result<CommonPart> {
     let bricks = data
         .lines()
         .map(Brick::from_str)
         .collect::<Result<Vec<_>>>()?;
 
     let mut grid = BrickGrid::from(bricks);
-    // println!("x view:");
-    // println!("{}", grid.x_view());
-    // println!();
-    // println!("y view:");
-    // println!("{}", grid.y_view());
-    // println!();
 
     let bricks_asc: Vec<BrickId> = grid
         .bricks
@@ -136,37 +121,25 @@ fn common_part(
         loop {
             let brick = grid.bricks.get(&id).unwrap();
             let z = brick.min_z();
-            // println!("brick {}: min_z={}", id, z);
             if z == 1 {
                 break;
             }
 
             let xys_at_z = brick.xys_at_z(z);
-            // println!("  xys_at_z={:?}", xys_at_z);
 
             let can_move = if let Some(x) = grid.z.get(&(z - 1)) {
                 !xys_at_z.iter().any(|xy| x.contains_key(xy))
             } else {
                 true
             };
-            // println!("  can_move={}", can_move);
 
             if !can_move {
                 break;
             }
 
-            // println!("  moving down brick {}", id);
-
             grid.replace_brick(&id, brick.clone().move_down());
         }
     }
-
-    // println!("x view:");
-    // println!("{}", grid.x_view());
-    // println!();
-    // println!("y view:");
-    // println!("{}", grid.y_view());
-    // println!();
 
     let supporters: IndexMap<BrickId, Vec<BrickId>> = grid
         .bricks
@@ -182,16 +155,18 @@ fn common_part(
     let mut supporting: IndexMap<BrickId, Vec<BrickId>> = IndexMap::new();
     for id in grid.bricks.keys() {
         for supporter in grid.supporters(id) {
-            // println!("{}: supported by {:?}", id, supporter);
             supporting
                 .entry(supporter.clone())
                 .or_default()
                 .push(id.clone());
         }
     }
-    // println!("map: {:?}", supporting);
 
-    Ok((grid, supporters, supporting))
+    Ok(CommonPart {
+        grid,
+        supporters,
+        supporting,
+    })
 }
 
 #[derive(Debug, Clone)]
