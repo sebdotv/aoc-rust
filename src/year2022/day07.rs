@@ -10,7 +10,7 @@ use crate::challenge::Day;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (95437, Some(1453349)),
-        part2_solutions: None,
+        part2_solutions: Some((24933642, Some(2948823))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -19,20 +19,7 @@ pub fn day() -> Day<usize> {
 }
 
 fn part1(data: &str) -> Result<usize> {
-    let commands = data
-        .lines()
-        .collect_vec()
-        .iter()
-        .batching(|it| {
-            it.next().map(|first| {
-                iter::once(first)
-                    .chain(it.peeking_take_while(|line| !line.starts_with("$ ")))
-                    .join("\n")
-            })
-        })
-        .map(|s| s.parse::<Command>())
-        .collect::<Result<Vec<_>>>()?;
-
+    let commands = parse_commands(data)?;
     let index = DirIndex::from(commands);
 
     let mut cache = IndexMap::new();
@@ -43,6 +30,41 @@ fn part1(data: &str) -> Result<usize> {
         .sum::<usize>();
 
     Ok(sum)
+}
+
+fn part2(data: &str) -> Result<usize> {
+    let commands = parse_commands(data)?;
+    let index = DirIndex::from(commands);
+
+    let mut cache = IndexMap::new();
+    let used = index.total_size(&vec![], &mut cache);
+    let available = 70000000 - used;
+    let required = 30000000;
+    let must_free = required - available;
+
+    let min = index
+        .directories()
+        .map(|path| index.total_size(path, &mut cache))
+        .filter(|&size| size >= must_free)
+        .min()
+        .unwrap();
+
+    Ok(min)
+}
+
+fn parse_commands(s: &str) -> Result<Vec<Command>> {
+    s.lines()
+        .collect_vec()
+        .iter()
+        .batching(|it| {
+            it.next().map(|first| {
+                iter::once(first)
+                    .chain(it.peeking_take_while(|line| !line.starts_with("$ ")))
+                    .join("\n")
+            })
+        })
+        .map(|s| s.parse::<Command>())
+        .collect::<Result<Vec<_>>>()
 }
 
 type Path = Vec<String>;
@@ -103,10 +125,6 @@ impl From<Vec<Command>> for DirIndex {
         }
         Self { listings }
     }
-}
-
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
 }
 
 #[derive(Debug)]
