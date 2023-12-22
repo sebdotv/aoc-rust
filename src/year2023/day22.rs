@@ -24,27 +24,14 @@ fn part1(data: &str) -> Result<usize> {
         .lines()
         .map(Brick::from_str)
         .collect::<Result<Vec<_>>>()?;
-    // for brick in &bricks {
-    //     println!("{:?}", brick);
-    // }
 
-    let mut grid = BrickGrid::new();
-    for (i, brick) in bricks.iter().enumerate() {
-        let brick_id = if bricks.len() <= 26 {
-            ((b'A' + u8::try_from(i).unwrap()) as char).to_string()
-        } else {
-            i.to_string()
-        };
-        grid.add_brick(brick_id, brick.clone());
-    }
+    let mut grid = BrickGrid::from(bricks);
     println!("x view:");
     println!("{}", grid.x_view());
     println!();
     println!("y view:");
     println!("{}", grid.y_view());
     println!();
-
-    // let mut processed_bricks_by_z: IndexMap<usize, Brick> = IndexMap::new();
 
     let bricks_asc: Vec<BrickId> = grid
         .bricks
@@ -57,26 +44,26 @@ fn part1(data: &str) -> Result<usize> {
         loop {
             let brick = grid.bricks.get(&id).unwrap();
             let z = brick.min_z();
-            println!("brick {}: min_z={}", id, z);
+            // println!("brick {}: min_z={}", id, z);
             if z == 1 {
                 break;
             }
 
             let xys_at_z = brick.xys_at_z(z);
-            println!("  xys_at_z={:?}", xys_at_z);
+            // println!("  xys_at_z={:?}", xys_at_z);
 
             let can_move = if let Some(x) = grid.z.get(&(z - 1)) {
                 !xys_at_z.iter().any(|xy| x.contains_key(xy))
             } else {
                 true
             };
-            println!("  can_move={}", can_move);
+            // println!("  can_move={}", can_move);
 
             if !can_move {
                 break;
             }
 
-            println!("  moving down brick {}", id);
+            // println!("  moving down brick {}", id);
 
             grid.replace_brick(&id, brick.clone().move_down());
         }
@@ -352,5 +339,20 @@ impl<'a> Display for LateralView<'a> {
             writeln!(f, " {}", z)?;
         }
         Ok(())
+    }
+}
+
+impl From<Vec<Brick>> for BrickGrid {
+    fn from(bricks: Vec<Brick>) -> Self {
+        let mut grid = BrickGrid::new();
+        for (i, brick) in bricks.iter().enumerate() {
+            let brick_id = if bricks.len() <= 26 {
+                ((b'A' + u8::try_from(i).unwrap()) as char).to_string()
+            } else {
+                i.to_string()
+            };
+            grid.add_brick(brick_id, brick.clone());
+        }
+        grid
     }
 }
