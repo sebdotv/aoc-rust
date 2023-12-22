@@ -7,7 +7,7 @@ use itertools::Itertools;
 
 use crate::challenge::Day;
 
-pub fn day() -> Day<u32> {
+pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (95437, Some(1453349)),
         part2_solutions: None,
@@ -18,7 +18,7 @@ pub fn day() -> Day<u32> {
     }
 }
 
-fn part1(data: &str) -> Result<u32> {
+fn part1(data: &str) -> Result<usize> {
     let commands = data
         .lines()
         .collect_vec()
@@ -30,93 +30,82 @@ fn part1(data: &str) -> Result<u32> {
                     .join("\n")
             })
         })
-        .map(|s| s.parse::<Command>().unwrap())
-        .inspect(|cmd| {
-            println!("{:?}", cmd);
-            println!();
-        })
-        .collect_vec();
+        .map(|s| s.parse::<Command>())
+        .collect::<Result<Vec<_>>>()?;
 
-    compute_dir_sizes(commands);
+    let index = DirIndex::from(commands);
 
-    Ok(0)
+    let mut cache = IndexMap::new();
+    let sum = index
+        .directories()
+        .map(|path| index.total_size(path, &mut cache))
+        .filter(|&size| size <= 100000)
+        .sum::<usize>();
+
+    Ok(sum)
 }
 
-fn compute_dir_sizes(commands: Vec<Command>) -> Result<u32> {
-    type Path = Vec<String>;
-    struct DirIndex {
-        dirs: IndexMap<Path, Dir>,
-    }
-    impl DirIndex {
-        // fn insert(&mut self, dir: Dir) {
-        //     let prev = self.dirs.insert(dir.path(), dir);
-        //     assert!(prev.is_none());
-        // }
-        fn get(&self, path: &Path) -> &Dir {
-            self.dirs.get(path).unwrap()
-        }
-        fn get_or_create(&mut self, parent_path: &Path, name: &String) -> &Dir {
-            self.dirs
-                .entry(Dir::make_path(parent_path, name))
-                .or_insert_with(|| Dir {
-                    name: name.clone(),
-                    entries: vec![],
-                    parent_path: parent_path.clone(),
-                })
-        }
-    }
-    struct Dir {
-        name: String,
-        entries: Vec<DirEntry>,
-        parent_path: Path,
-    }
-    impl Dir {
-        fn path(&self) -> Path {
-            Self::make_path(&self.parent_path, &self.name)
-        }
-        fn make_path(parent_path: &Vec<String>, name: &String) -> Path {
-            let mut path = parent_path.clone();
-            path.push(name.clone());
-            path
-        }
-    }
-    enum DirEntry {
-        Dir(Dir),
-        File(u32, String),
-    }
-    let mut index = DirIndex {
-        dirs: IndexMap::new(),
-    };
-    // let root = index.get_or_create(&vec![], &"".to_owned());
-    // let mut current_dir = index.get(&Vec::new());
+type Path = Vec<String>;
 
-    let root: Path = vec![];
-    let mut current_path: Path = root.clone();
-
-    for cmd in commands {
-        match cmd {
-            Command::Cd(cd_cmd) => {
-                current_path = match cd_cmd {
-                    CdCommand::CdSlash => root.clone(),
-                    CdCommand::CdUp => current_path.iter().dropping_back(1).cloned().collect(),
-                    CdCommand::CdDir(dir_name) => current_path
-                        .iter()
-                        .chain(iter::once(&dir_name))
-                        .cloned()
-                        .collect(),
-                };
-                println!("{:?}", current_path);
+struct DirIndex {
+    listings: IndexMap<Path, Vec<LsEntry>>,
+}
+impl DirIndex {
+    fn directories(&self) -> impl Iterator<Item = &Path> {
+        self.listings.keys()
+    }
+    fn total_size(&self, path: &Path, cache: &mut IndexMap<Path, usize>) -> usize {
+        if let Some(cached) = cache.get(path) {
+            return *cached;
+        }
+        let result = self
+            .listings
+            .get(path)
+            .unwrap()
+            .iter()
+            .map(|entry| match entry {
+                LsEntry::File(size, _) => *size,
+                LsEntry::Dir(name) => self.total_size(&Self::make_path(path, name), cache),
+            })
+            .sum();
+        cache.insert(path.clone(), result);
+        result
+    }
+    fn make_path(parent: &Path, dir_name: &str) -> Path {
+        let mut path = parent.clone();
+        path.push(dir_name.to_owned());
+        path
+    }
+}
+impl From<Vec<Command>> for DirIndex {
+    fn from(commands: Vec<Command>) -> Self {
+        let mut current_path: Path = vec![];
+        let mut listings: IndexMap<Path, Vec<LsEntry>> = IndexMap::new();
+        for cmd in commands {
+            match cmd {
+                Command::Cd(cd_cmd) => match cd_cmd {
+                    CdCommand::Slash => {
+                        current_path.clear();
+                    }
+                    CdCommand::Up => {
+                        current_path.pop().unwrap();
+                    }
+                    CdCommand::Dir(dir_name) => {
+                        current_path.push(dir_name);
+                    }
+                },
+                Command::Ls(ls_cmd) => {
+                    let path = current_path.clone();
+                    let prev = listings.insert(path, ls_cmd.entries);
+                    assert!(prev.is_none());
+                }
             }
-            Command::Ls(LsCommand { entries }) => todo!(),
         }
+        Self { listings }
     }
-
-    // let mut current_dir: Vec<&str> = vec![];
-    // let mut dir_contents: IndexMap<Vec<&str>, Vec> = 0;
-    Ok(0)
 }
 
-fn part2(_data: &str) -> Result<u32> {
+fn part2(_data: &str) -> Result<usize> {
     todo!()
 }
 
@@ -138,9 +127,9 @@ impl FromStr for Command {
 
 #[derive(Debug)]
 enum CdCommand {
-    CdSlash,
-    CdUp,
-    CdDir(String),
+    Slash,
+    Up,
+    Dir(String),
 }
 impl FromStr for CdCommand {
     type Err = anyhow::Error;
@@ -150,9 +139,9 @@ impl FromStr for CdCommand {
             .strip_prefix("$ cd ")
             .ok_or(anyhow!("strip prefix error"))?;
         match dest {
-            "/" => Ok(Self::CdSlash),
-            ".." => Ok(Self::CdUp),
-            _ => Ok(Self::CdDir(dest.to_owned())),
+            "/" => Ok(Self::Slash),
+            ".." => Ok(Self::Up),
+            _ => Ok(Self::Dir(dest.to_owned())),
         }
     }
 }
@@ -169,7 +158,7 @@ impl FromStr for LsCommand {
         if lines.next().unwrap() != "$ ls" {
             return Err(anyhow!("invalid ls command"));
         }
-        let entries = lines.map(|line| line.parse()).collect::<Result<_>>()?;
+        let entries = lines.map(str::parse).collect::<Result<_>>()?;
         Ok(Self { entries })
     }
 }
@@ -177,7 +166,7 @@ impl FromStr for LsCommand {
 #[derive(Debug)]
 enum LsEntry {
     Dir(String),
-    File(u32, String),
+    File(usize, String),
 }
 impl FromStr for LsEntry {
     type Err = anyhow::Error;
