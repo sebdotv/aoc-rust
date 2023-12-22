@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::RangeInclusive;
+use std::ops::{Index, RangeInclusive};
 use std::str::FromStr;
 
 use anyhow::{bail, Result};
@@ -76,7 +76,69 @@ fn part1(data: &str) -> Result<usize> {
     println!("{}", grid.y_view());
     println!();
 
-    Ok(0)
+    // let map = grid
+    //     .bricks
+    //     .keys()
+    //     .flat_map(|id| {
+    //         grid.supporters(id)
+    //             .into_iter()
+    //             .map(|supporter| (id, supporter))
+    //             .collect_vec()
+    //     })
+    //     .inspect(|(id, supporter)| {
+    //         println!("{}: supported by {:?}", id, supporter);
+    //     })
+    //     .into_group_map_by(|(_, supporter)| supporter.clone());
+
+    let supporters: IndexMap<BrickId, Vec<BrickId>> = grid
+        .bricks
+        .keys()
+        .map(|id| {
+            (
+                id.clone(),
+                grid.supporters(id).into_iter().cloned().collect(),
+            )
+        })
+        .collect();
+
+    let mut supporting: IndexMap<BrickId, Vec<BrickId>> = IndexMap::new();
+    for id in grid.bricks.keys() {
+        for supporter in grid.supporters(id) {
+            println!("{}: supported by {:?}", id, supporter);
+            supporting
+                .entry(supporter.clone())
+                .or_default()
+                .push(id.clone());
+        }
+    }
+    println!("map: {:?}", supporting);
+
+    // for id in grid.bricks.keys() {
+    //     let supporters = grid.supporters(id);
+    //     if supporters.len() > 1 {
+    //         println!("{}: unsupported", id);
+    //     }
+    // }
+
+    let mut removable = 0;
+
+    for id in grid.bricks.keys() {
+        let can_be_removed = if let Some(supporting) = supporting.get(id) {
+            println!("{}: supporting {:?}", id, supporting);
+            supporting.iter().all(|supported| {
+                let supporters = supporters.get(supported).unwrap();
+                supporters.len() > 1
+            })
+        } else {
+            true
+        };
+        if can_be_removed {
+            println!("{} can be removed", id);
+            removable += 1;
+        }
+    }
+
+    Ok(removable)
 }
 
 fn part2(_data: &str) -> Result<usize> {
@@ -290,6 +352,18 @@ impl BrickGrid {
     pub fn z_range(&self) -> RangeInclusive<usize> {
         let (&min, &max) = self.z.keys().minmax().into_option().unwrap();
         min..=max
+    }
+
+    pub fn supporters(&self, id: &BrickId) -> IndexSet<&BrickId> {
+        let brick = self.bricks.get(id).unwrap();
+        let brick_min_z = brick.min_z();
+        let mut supporting = IndexSet::new();
+        for (x, y) in brick.xys_at_z(brick_min_z) {
+            if let Some(id_below) = self.brick_at((x, y, brick_min_z - 1)) {
+                supporting.insert(id_below);
+            }
+        }
+        supporting
     }
 }
 
