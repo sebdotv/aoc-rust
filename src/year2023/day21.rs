@@ -40,19 +40,25 @@ fn part2(data: &str) -> Result<usize> {
         .map(|i| {
             let steps = STEPS % grid.w + i * grid.w;
             (
-                try_f64_from_usize(steps).unwrap(),
+                try_f64_from_usize(i).unwrap(),
                 try_f64_from_usize(part2_reach(&grid, steps)).unwrap(),
             )
         })
         .unzip();
 
     let coeffs = polyfit(&xs, &ys, 2).unwrap();
-    let (coeff_c, coeff_b, coeff_a) = coeffs.iter().collect_tuple().unwrap();
 
-    let x = try_f64_from_usize(STEPS).unwrap();
+    let (coeff_c, coeff_b, coeff_a) = coeffs
+        .iter()
+        .map(|f| f.round())
+        .map(|f| try_usize_from_f64(f).unwrap())
+        .collect_tuple()
+        .unwrap();
+
+    let x = STEPS / grid.w; // ignore remainder
     let y = (coeff_a * x * x) + (coeff_b * x) + coeff_c;
 
-    Ok(try_usize_from_f64(y.floor()).unwrap())
+    Ok(y)
 }
 
 fn part1_reach(grid: &Grid<char>, steps: usize) -> Vec<Coord> {
