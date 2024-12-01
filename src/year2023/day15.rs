@@ -90,7 +90,7 @@ impl FromStr for Step {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        let idx = s.find(|c| c == '-' || c == '=').unwrap();
+        let idx = s.find(['-', '=']).unwrap();
         let (label, rest) = s.split_at(idx);
         let (op, nb) = rest.split_at(1);
         let label = label.to_string();
