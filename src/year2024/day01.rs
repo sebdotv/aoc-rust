@@ -4,7 +4,7 @@ use crate::challenge::Day;
 
 pub fn day() -> Day<usize> {
     Day {
-        part1_solutions: (todo!(), None),
+        part1_solutions: (11, None),
         part2_solutions: None,
         part1_solver: part1,
         part2_solver: part2,
