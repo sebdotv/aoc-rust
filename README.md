@@ -3,8 +3,8 @@
 ### download & prepare
 
 ```shell
-YEAR=2023
-DAY=22
+YEAR=2024
+DAY=01
 (mkdir --parents data/year$YEAR/day$DAY && cd data/year$YEAR/day$DAY && aoc download --overwrite --year $YEAR --day $DAY)
 cp --no-clobber ./src/template.rs ./src/year$YEAR/day$DAY.rs
 ```
