@@ -26,13 +26,12 @@ fn hash(s: &str) -> u8 {
     h.try_into().unwrap()
 }
 
-#[allow(clippy::unnecessary_wraps)]
 fn part1(data: &str) -> Result<usize> {
     Ok(data
         .trim()
         .split(',')
         .map(hash)
-        .map(|h| TryInto::<usize>::try_into(h).unwrap())
+        .map(Into::<usize>::into)
         .sum())
 }
 
