@@ -78,10 +78,10 @@ fn part2(data: &str) -> Result<usize> {
         let mut removed = 0;
 
         while let Some(to_remove) = remove_queue.pop() {
-            let supporting = state.supporting.remove(&to_remove).unwrap_or_default();
+            let supporting = state.supporting.swap_remove(&to_remove).unwrap_or_default();
             for supported in supporting {
                 let supporters = state.supporters.get_mut(&supported).unwrap();
-                let removed = supporters.remove(&to_remove);
+                let removed = supporters.swap_remove(&to_remove);
                 assert!(removed);
                 if supporters.is_empty() {
                     remove_queue.push(supported);
@@ -320,14 +320,14 @@ impl BrickGrid {
     }
 
     pub fn remove_brick(&mut self, id: &BrickId) {
-        let brick = self.bricks.remove(id).unwrap();
+        let brick = self.bricks.swap_remove(id).unwrap();
         for coord in brick.coords() {
             let (x, y, z) = coord;
             let xy = self.z.get_mut(&z).unwrap();
-            let removed = xy.remove(&(x, y)).unwrap();
+            let removed = xy.swap_remove(&(x, y)).unwrap();
             assert_eq!(&removed, id);
             if xy.is_empty() {
-                self.z.remove(&z);
+                self.z.swap_remove(&z);
             }
         }
     }
@@ -398,7 +398,7 @@ struct LateralView<'a> {
     x_side: bool,
 }
 
-impl<'a> Display for LateralView<'a> {
+impl Display for LateralView<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         fn x_coord((a, other): (usize, usize), z: usize) -> (usize, usize, usize) {
             (a, other, z)

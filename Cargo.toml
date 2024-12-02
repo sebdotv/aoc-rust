@@ -45,3 +45,4 @@ unreadable_literal = { level = "allow", priority = 1 } # part of pedantic
 unnecessary_wraps = { level = "allow", priority = 1 } # part of pedantic
 cargo = { level = "warn", priority = 0 }
 cargo_common_metadata = { level = "allow", priority = 1 } # part of cargo
+multiple_crate_versions = { level = "allow", priority = 1 } # part of cargo

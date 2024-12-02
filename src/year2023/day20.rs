@@ -292,6 +292,7 @@ impl Display for Pulse {
 
 trait Module: Debug {
     fn process(&mut self, pulse: Pulse) -> Vec<Pulse>;
+    #[allow(dead_code)]
     fn done(&self) -> bool {
         false
     }

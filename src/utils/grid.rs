@@ -249,6 +249,14 @@ where
     }
 
     pub fn iter(&self) -> Iter<'_, T> {
+        self.into_iter()
+    }
+}
+
+impl<'a, T: Copy> IntoIterator for &'a Grid<T> {
+    type Item = (Coord, T);
+    type IntoIter = Iter<'a, T>;
+    fn into_iter(self) -> Self::IntoIter {
         Iter {
             grid: self,
             curr: 0,
@@ -261,7 +269,7 @@ pub struct Iter<'a, T> {
     curr: usize,
 }
 
-impl<'a, T> Iterator for Iter<'a, T>
+impl<T> Iterator for Iter<'_, T>
 where
     T: Copy,
 {

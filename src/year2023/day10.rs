@@ -258,7 +258,7 @@ impl Tile {
 
     fn direction_from(self, dir: Direction) -> Option<Direction> {
         let mut connections = self.connections().clone();
-        let removed = connections.remove(&dir.reverse());
+        let removed = connections.swap_remove(&dir.reverse());
         removed.then(|| {
             let (other_dir,) = connections.iter().collect_tuple().unwrap();
             *other_dir

@@ -3,10 +3,13 @@
 ### download & prepare
 
 ```shell
-YEAR=2024
-DAY=01
-(mkdir --parents data/year$YEAR/day$DAY && cd data/year$YEAR/day$DAY && aoc download --overwrite --year $YEAR --day $DAY)
-cp --no-clobber ./src/template.rs ./src/year$YEAR/day$DAY.rs
+just init-today
+```
+
+or:
+
+```shell
+just init [year] [date]
 ```
 
 ### solve all challenges

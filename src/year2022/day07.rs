@@ -184,7 +184,7 @@ impl FromStr for LsCommand {
 #[derive(Debug)]
 enum LsEntry {
     Dir(String),
-    File(usize, String),
+    File(usize, #[allow(dead_code)] String),
 }
 impl FromStr for LsEntry {
     type Err = anyhow::Error;
