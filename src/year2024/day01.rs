@@ -6,7 +6,7 @@ use itertools::Itertools;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (11, Some(3569916)),
-        part2_solutions: Some((31, None)),
+        part2_solutions: Some((31, Some(26407426))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
