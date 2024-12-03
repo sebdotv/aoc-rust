@@ -48,6 +48,8 @@ cargo flamegraph -- --latest --part 2 --only input
 - `indexmap`: ordered hashmap
 - `itertools`: iterator tools
 - `lazy_static`: lazy statics
+- `nom`: parser combinators
+- `nom_locate`: special input type for `nom` to locate tokens
 - `num_enum`: enum from number
 - `pathfinding`: pathfinding
 - `polyfit-rs`: polynomial fitting
