@@ -12,7 +12,7 @@ use std::fmt::{Display, Formatter};
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (161, Some(173785482)),
-        part2_solutions: Some((48, None)),
+        part2_solutions: Some((48, Some(83158140))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
