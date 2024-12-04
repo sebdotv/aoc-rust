@@ -99,9 +99,7 @@ impl Puzzle {
             None => item,
         }
     }
-}
 
-impl Puzzle {
     fn new(seeds: Vec<u64>, maps: Vec<ConversionMap>) -> Puzzle {
         let len = maps.len();
         let maps_by_source: IndexMap<Category, ConversionMap> = maps

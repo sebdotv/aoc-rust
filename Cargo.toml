@@ -46,6 +46,17 @@ must_use_candidate = { level = "allow", priority = 1 } # part of pedantic
 uninlined_format_args = { level = "allow", priority = 1 } # part of pedantic
 unreadable_literal = { level = "allow", priority = 1 } # part of pedantic
 unnecessary_wraps = { level = "allow", priority = 1 } # part of pedantic
+
+clone_on_ref_ptr = { level = "warn", priority = 0 } # part of restriction
+impl_trait_in_params = { level = "warn", priority = 0 } # part of restriction
+iter_over_hash_type = { level = "warn", priority = 0 } # part of restriction
+let_underscore_untyped = { level = "warn", priority = 0 } # part of restriction
+map_err_ignore = { level = "warn", priority = 0 } # part of restriction
+multiple_inherent_impl = { level = "warn", priority = 0 } # part of restriction
+ref_patterns = { level = "warn", priority = 0 } # part of restriction
+renamed_function_params = { level = "warn", priority = 0 } # part of restriction
+str_to_string = { level = "warn", priority = 0 } # part of restriction
+
 cargo = { level = "warn", priority = 0 }
 cargo_common_metadata = { level = "allow", priority = 1 } # part of cargo
 multiple_crate_versions = { level = "allow", priority = 1 } # part of cargo

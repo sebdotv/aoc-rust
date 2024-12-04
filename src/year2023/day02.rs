@@ -94,7 +94,7 @@ impl FromStr for Game {
         let (_, [id, reveals]) = caps.extract();
         let parse_u32 = |s: &str| {
             s.parse::<u32>()
-                .map_err(|_| anyhow!("number parse error for `{}`", s))
+                .map_err(|_e| anyhow!("number parse error for `{}`", s))
         };
         let id = parse_u32(id)?;
         let reveals = reveals
@@ -111,7 +111,7 @@ impl FromStr for SetOfCubes {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         let parse_u8 = |s: &str| {
             s.parse::<u32>()
-                .map_err(|_| anyhow!("number parse error for `{}`", s))
+                .map_err(|_e| anyhow!("number parse error for `{}`", s))
         };
         let sets = s
             .split(", ")

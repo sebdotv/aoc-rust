@@ -43,9 +43,7 @@ impl Stacks {
             .map(|stack| stack.last().unwrap())
             .collect()
     }
-}
 
-impl Stacks {
     fn from_lines(lines: &[&str]) -> Self {
         let lines_iter = || lines.iter().dropping_back(1);
         let max_line_len = lines_iter().map(|line| line.len()).max().unwrap();
@@ -130,7 +128,7 @@ impl FromStr for Move {
         let (_, [n, from, to]) = caps.extract();
         let parse_usize = |s: &str| {
             s.parse::<usize>()
-                .map_err(|_| ParseMoveError::ParseIntError)
+                .map_err(|_e| ParseMoveError::ParseIntError)
         };
         Ok(Move {
             n: parse_usize(n)?,

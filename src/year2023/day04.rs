@@ -64,7 +64,7 @@ impl FromStr for Card {
         let (_, [id, winning, numbers]) = caps.extract();
         let parse_u32 = |s: &str| {
             s.parse::<u32>()
-                .map_err(|_| anyhow!("number parse error for `{}`", s))
+                .map_err(|_e| anyhow!("number parse error for `{}`", s))
         };
         let id = parse_u32(id)?;
         let split_numbers = |s: &str| {

@@ -153,7 +153,7 @@ impl FromStr for Hand {
             .collect::<Result<Vec<_>>>()?;
         let cards = cards
             .try_into()
-            .map_err(|_| anyhow!("Invalid number of cards: {}", s))?;
+            .map_err(|_e| anyhow!("Invalid number of cards: {}", s))?;
         let bid = bid.parse::<u32>()?;
         Ok(Self { cards, bid })
     }

@@ -139,7 +139,7 @@ impl FromStr for Command {
         s.parse::<LsCommand>()
             .map(Self::Ls)
             .or_else(|_| s.parse::<CdCommand>().map(Self::Cd))
-            .map_err(|_| anyhow!("invalid command"))
+            .map_err(|_e| anyhow!("invalid command"))
     }
 }
 

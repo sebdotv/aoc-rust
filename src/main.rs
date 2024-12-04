@@ -67,7 +67,7 @@ fn main() -> Result<()> {
     };
     let part = args.part.map(Part::try_from).transpose()?;
     let mut ok = true;
-    for ref day in challenge_days {
+    for day in &challenge_days {
         ok &= match day {
             DayWrapper::I32(day) => check_day(day, part, args.only)?,
             DayWrapper::U32(day) => check_day(day, part, args.only)?,

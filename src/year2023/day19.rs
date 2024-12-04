@@ -243,7 +243,7 @@ impl FromStr for Workflow {
     fn from_str(s: &str) -> Result<Self> {
         let s = s.strip_suffix('}').unwrap();
         let (name, right) = s.split_once('{').unwrap();
-        let name = name.to_string();
+        let name = name.to_owned();
         let items = right.split(',').collect_vec();
         let (default_action, rules) = items.split_last().unwrap();
         let default_action = default_action.parse::<Action>().unwrap();
@@ -271,7 +271,7 @@ impl FromStr for Action {
         match s {
             "A" => Ok(Self::Accept),
             "R" => Ok(Self::Reject),
-            s => Ok(Self::GotoWorkflow(s.to_string())),
+            s => Ok(Self::GotoWorkflow(s.to_owned())),
         }
     }
 }

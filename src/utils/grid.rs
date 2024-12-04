@@ -118,8 +118,13 @@ where
             .iter()
             .flat_map(|line| {
                 line.chars().map(|char| char.to_string()).map(|s| {
-                    s.parse::<T>().map_err(|_| {
-                        anyhow!("Could not parse {} as {}", s, std::any::type_name::<T>())
+                    s.parse::<T>().map_err(|e| {
+                        anyhow!(
+                            "Could not parse {} as {}: {:?}",
+                            s,
+                            std::any::type_name::<T>(),
+                            e
+                        )
                     })
                 })
             })

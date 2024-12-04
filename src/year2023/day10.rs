@@ -76,6 +76,7 @@ struct Solver {
     grid: Grid<Tile>,
 }
 
+type Flow = (Coord, Direction);
 impl Solver {
     pub fn transform_grid<F>(&self, f: F) -> Solver
     where
@@ -84,10 +85,7 @@ impl Solver {
         let grid = self.grid.transform(f);
         Solver { grid }
     }
-}
 
-type Flow = (Coord, Direction);
-impl Solver {
     fn find_start(&self) -> Coord {
         let (start,) = self
             .grid

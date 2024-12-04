@@ -93,7 +93,7 @@ impl FromStr for Step {
         let idx = s.find(['-', '=']).unwrap();
         let (label, rest) = s.split_at(idx);
         let (op, nb) = rest.split_at(1);
-        let label = label.to_string();
+        let label = label.to_owned();
         let operation = match op {
             "-" => Operation::Remove,
             "=" => Operation::Add(nb.parse::<usize>()?),
