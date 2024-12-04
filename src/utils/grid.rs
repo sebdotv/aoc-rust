@@ -37,6 +37,37 @@ impl Direction {
 }
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, EnumIter)]
+pub enum DirectionDiag {
+    NE,
+    SE,
+    SW,
+    NW,
+}
+impl DirectionDiag {
+    #[must_use]
+    pub fn reverse(self) -> DirectionDiag {
+        use DirectionDiag::*;
+        match self {
+            NE => SW,
+            SW => NE,
+            SE => NW,
+            NW => SE,
+        }
+    }
+
+    pub fn to_dirs(self) -> [Direction; 2] {
+        use Direction::*;
+        use DirectionDiag::*;
+        match self {
+            NE => [N, E],
+            SE => [S, E],
+            SW => [S, W],
+            NW => [N, W],
+        }
+    }
+}
+
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, EnumIter)]
 pub enum Turn {
     Left,
     Right,
@@ -208,6 +239,15 @@ impl<T> Grid<T> {
             Direction::E if *x < self.w - 1 => Some(Coord(x + 1, *y)),
             _ => None,
         }
+    }
+
+    pub fn walk_diag(&self, from: &Coord, dir: DirectionDiag) -> Option<Coord> {
+        self.walk_multiple(from, &dir.to_dirs())
+    }
+
+    pub fn walk_multiple(&self, from: &Coord, dirs: &[Direction]) -> Option<Coord> {
+        dirs.iter()
+            .try_fold(*from, |coord, dir| self.walk(&coord, *dir))
     }
 
     pub fn bottom_right(&self) -> Coord {
