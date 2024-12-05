@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
 use anyhow::Result;
@@ -37,7 +38,7 @@ enum Only {
     Input,
 }
 
-fn main() -> Result<()> {
+fn main() -> Result<ExitCode> {
     let args = Args::parse();
 
     let mut days = all_challenge_days();
@@ -78,9 +79,9 @@ fn main() -> Result<()> {
     }
 
     if ok {
-        Ok(())
+        Ok(ExitCode::SUCCESS)
     } else {
-        Err(anyhow::anyhow!("Some tests failed"))
+        Ok(ExitCode::FAILURE)
     }
 }
 
