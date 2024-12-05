@@ -84,11 +84,11 @@ impl Rules {
         *self.ord.get(&(a, b)).unwrap()
     }
 
-    const fn compare_fn(&self) -> impl FnMut(&usize, &usize) -> Ordering + use<'_> {
+    const fn compare_fn(&self) -> impl FnMut(&usize, &usize) -> Ordering + '_ {
         |a, b| self.compare(*a, *b)
     }
 
-    const fn is_less_fn(&self) -> impl FnMut(&usize, &usize) -> bool + use<'_> {
+    const fn is_less_fn(&self) -> impl FnMut(&usize, &usize) -> bool + '_ {
         |a, b| self.compare(*a, *b) == Ordering::Less
     }
 }
