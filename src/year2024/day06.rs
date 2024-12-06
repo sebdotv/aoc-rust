@@ -75,7 +75,7 @@ fn part1(data: &str) -> Result<usize> {
 fn part1_grid(data: &str) -> Result<Grid<Cell>> {
     let mut grid: Grid<Cell> = data.parse()?;
     let (pos, dir) = remove_guard(&mut grid).unwrap();
-    let (visited, _) = run_loop(&grid, pos, dir);
+    let (visited, _) = run_loop(&grid, pos, dir, true);
     visited.iter().for_each(|(coord, _)| {
         grid.set(coord, Cell::Visited);
     });
@@ -92,16 +92,23 @@ fn find_guard(grid: &Grid<Cell>) -> Option<(Coord, Direction)> {
         .find_map(|(coord, cell)| cell.guard_direction().map(|d| (coord, d)))
 }
 
-fn run_loop(grid: &Grid<Cell>, pos: Coord, dir: Direction) -> (IndexSet<(Coord, Direction)>, bool) {
+fn run_loop(
+    grid: &Grid<Cell>,
+    pos: Coord,
+    dir: Direction,
+    return_visited: bool,
+) -> (IndexSet<(Coord, Direction)>, bool) {
     let mut pos = pos;
     let mut dir = dir;
 
-    let mut visited = IndexSet::new();
+    let mut visited = vec![vec![[false; 4]; grid.w]; grid.h];
     let mut looped = false;
 
     loop {
-        let new = visited.insert((pos, dir));
-        if !new {
+        let dir_u8: u8 = dir.into();
+        let already_visited = visited[pos.1][pos.0][dir_u8 as usize];
+        visited[pos.1][pos.0][dir as usize] = true;
+        if already_visited {
             looped = true;
             break;
         }
@@ -137,6 +144,24 @@ fn run_loop(grid: &Grid<Cell>, pos: Coord, dir: Direction) -> (IndexSet<(Coord, 
         }
     }
 
+    let visited = if return_visited {
+        let mut set = IndexSet::new();
+        for (y, row) in visited.iter().enumerate() {
+            for (x, dirs) in row.iter().enumerate() {
+                let coord = Coord(x, y);
+                for (dir, visited) in dirs.iter().enumerate() {
+                    if *visited {
+                        let dir_u8 = u8::try_from(dir).unwrap();
+                        let dir = Direction::try_from(dir_u8).unwrap();
+                        set.insert((coord, dir));
+                    }
+                }
+            }
+        }
+        set
+    } else {
+        IndexSet::new()
+    };
     (visited, looped)
 }
 
@@ -144,14 +169,14 @@ fn part2(data: &str) -> Result<usize> {
     let (grid, pos, dir) = part2_prepare(data)?;
 
     // optimization: only consider normally visited cells
-    let (visited, _) = run_loop(&grid, pos, dir);
+    let (visited, _) = run_loop(&grid, pos, dir, true);
 
     let visited_coords: IndexSet<_> = visited.into_iter().map(|(c, _)| c).collect();
 
     let options = visited_coords
         .into_iter()
         .filter(|c| {
-            let (_, _, looped) = eval_option(c, &grid, &pos, dir);
+            let (_, _, looped) = eval_option(c, &grid, &pos, dir, false);
             looped
         })
         .count();
@@ -169,10 +194,11 @@ fn eval_option(
     grid: &Grid<Cell>,
     start_pos: &Coord,
     start_dir: Direction,
+    return_visited: bool,
 ) -> (Grid<Cell>, IndexSet<(Coord, Direction)>, bool) {
     let mut grid = grid.clone();
     grid.set(c, Cell::ObstructionOption);
-    let (visited, looped) = run_loop(&grid, *start_pos, start_dir);
+    let (visited, looped) = run_loop(&grid, *start_pos, start_dir, return_visited);
     (grid, visited, looped)
 }
 
@@ -214,7 +240,7 @@ mod tests {
                 .iter()
                 .find_map(|(coord, c)| (c == 'O').then_some(coord))
                 .unwrap();
-            let (grid, visited, looped) = eval_option(&c, &grid, &start_pos, start_dir);
+            let (grid, visited, looped) = eval_option(&c, &grid, &start_pos, start_dir, true);
             let str = part2_to_string(&grid, start_pos, start_dir, &visited)
                 .trim()
                 .to_owned();

@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::EnumIter;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
@@ -16,7 +17,8 @@ impl Coord {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, EnumIter)]
+#[repr(u8)]
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, EnumIter, IntoPrimitive, TryFromPrimitive)]
 pub enum Direction {
     N,
     S,
