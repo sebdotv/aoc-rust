@@ -9,13 +9,13 @@ just init-today
 or:
 
 ```shell
-just init [year] [date]
+just init-day [year] [date]
 ```
 
 ### solve all challenges
 
 ```shell
-cargo run --release
+cargo run --quiet --release
 ```
 
 ### clippy
