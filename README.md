@@ -15,7 +15,7 @@ just init [year] [date]
 ### solve all challenges
 
 ```shell
-cargo run
+cargo run --release
 ```
 
 ### clippy

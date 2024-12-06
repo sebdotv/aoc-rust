@@ -12,7 +12,7 @@ init-today:
     just --justfile {{ justfile() }} init {{ datetime("%Y") }} {{ datetime("%d") }}
 
 run year day:
-    cargo run -- --year {{ year }} --day {{ day }}
+    cargo run --release -- --year {{ year }} --day {{ day }}
 
 run-today:
     just --justfile {{ justfile() }} run {{ datetime("%Y") }} {{ datetime("%d") }}
