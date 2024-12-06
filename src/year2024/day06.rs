@@ -52,15 +52,6 @@ impl Cell {
             _ => None,
         }
     }
-
-    fn from_guard_direction(dir: Direction) -> Cell {
-        match dir {
-            Direction::N => Cell::GuardN,
-            Direction::S => Cell::GuardS,
-            Direction::W => Cell::GuardW,
-            Direction::E => Cell::GuardE,
-        }
-    }
 }
 
 fn part1(data: &str) -> Result<usize> {
@@ -370,8 +361,17 @@ mod tests {
             }
         }
 
-        grid.set(&start_pos, Cell::from_guard_direction(start_dir));
+        grid.set(&start_pos, cell_from_guard_direction(start_dir));
 
         grid.to_string()
+    }
+
+    fn cell_from_guard_direction(dir: Direction) -> Cell {
+        match dir {
+            Direction::N => Cell::GuardN,
+            Direction::S => Cell::GuardS,
+            Direction::W => Cell::GuardW,
+            Direction::E => Cell::GuardE,
+        }
     }
 }
