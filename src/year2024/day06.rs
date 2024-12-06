@@ -141,17 +141,17 @@ fn run_loop(grid: &Grid<Cell>, pos: Coord, dir: Direction) -> (IndexSet<(Coord, 
 }
 
 fn part2(data: &str) -> Result<usize> {
-    let (grid, start_pos, start_dir) = part2_prepare(data)?;
+    let (grid, pos, dir) = part2_prepare(data)?;
 
-    let empty_coords = grid
-        .iter()
-        .filter_map(|(coord, cell)| (cell == Cell::Empty).then_some(coord))
-        .collect::<Vec<_>>();
+    // optimization: only consider normally visited cells
+    let (visited, _) = run_loop(&grid, pos, dir);
 
-    let options = empty_coords
+    let visited_coords: IndexSet<_> = visited.into_iter().map(|(c, _)| c).collect();
+
+    let options = visited_coords
         .into_iter()
         .filter(|c| {
-            let (_, _, looped) = eval_option(c, &grid, &start_pos, start_dir);
+            let (_, _, looped) = eval_option(c, &grid, &pos, dir);
             looped
         })
         .count();
