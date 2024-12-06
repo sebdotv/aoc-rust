@@ -86,7 +86,7 @@ impl Turn {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Grid<T> {
     pub w: usize,
     pub h: usize,
