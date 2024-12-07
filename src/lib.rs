@@ -10,14 +10,18 @@ mod template;
 #[cfg(test)]
 mod testing;
 pub mod utils;
+#[cfg(feature = "previous-years")]
 pub mod year2022;
+#[cfg(feature = "previous-years")]
 pub mod year2023;
 pub mod year2024;
 
 #[must_use]
 pub fn all_challenge_days() -> Vec<DayWrapper> {
     vec![
+        #[cfg(feature = "previous-years")]
         year2022::challenge_days(),
+        #[cfg(feature = "previous-years")]
         year2023::challenge_days(),
         year2024::challenge_days(),
     ]

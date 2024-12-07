@@ -7,6 +7,9 @@ license = "MIT"
 repository = "https://github.com/sebdotv/aoc-rust"
 keywords = ["advent-of-code", "aoc", "rust"]
 
+[features]
+previous-years = []
+
 [dependencies]
 anyhow = "1.0.76"
 chrono = "0.4.31"
