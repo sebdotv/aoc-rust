@@ -41,6 +41,32 @@ fn parse_equation(line: &str) -> Equation {
 }
 
 fn solve_equation(eq: &Equation, with_concat: bool) -> bool {
+    fn it(left: usize, remaining: &[usize], value: usize, with_concat: bool) -> bool {
+        if remaining.is_empty() {
+            return value == left;
+        }
+        if value > left {
+            return false;
+        }
+        let head = remaining[0];
+        let tail = &remaining[1..];
+        it(left, tail, value + head, with_concat)
+            || it(left, tail, value * head, with_concat)
+            || with_concat
+                && it(
+                    left,
+                    tail,
+                    value * 10usize.pow(head.checked_ilog10().unwrap() + 1) + head,
+                    with_concat,
+                )
+    }
+
+    let (left, right) = eq;
+    it(*left, &right[1..], right[0], with_concat)
+}
+
+#[allow(dead_code)]
+fn solve_equation_bfs(eq: &Equation, with_concat: bool) -> bool {
     #[derive(EnumIter, Debug, Eq, PartialEq, Hash, Copy, Clone)]
     enum Operator {
         Add,
