@@ -1,8 +1,5 @@
 use crate::challenge::Day;
 use anyhow::Result;
-use pathfinding::prelude::bfs;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 pub fn day() -> Day<usize> {
     Day {
@@ -63,61 +60,4 @@ fn solve_equation(eq: &Equation, with_concat: bool) -> bool {
 
     let (left, right) = eq;
     it(*left, &right[1..], right[0], with_concat)
-}
-
-#[allow(dead_code)]
-fn solve_equation_bfs(eq: &Equation, with_concat: bool) -> bool {
-    #[derive(EnumIter, Debug, Eq, PartialEq, Hash, Copy, Clone)]
-    enum Operator {
-        Add,
-        Multiply,
-        Concat,
-    }
-
-    #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
-    struct Pos {
-        offset: usize,
-        value: usize,
-        op: Option<Operator>,
-    }
-
-    let (left, right) = eq;
-
-    let start = Pos {
-        offset: 0,
-        value: right[0],
-        op: None,
-    };
-    let successors = |pos: &Pos| -> Vec<Pos> {
-        if pos.offset == right.len() - 1 {
-            return vec![];
-        }
-
-        // micro optimization: cut early if the value is already too big
-        if pos.value > *left {
-            return vec![];
-        }
-
-        Operator::iter()
-            .filter(|op| with_concat || *op != Operator::Concat)
-            .map(|op| {
-                let next_offset = pos.offset + 1;
-                let a = pos.value;
-                let b = right[next_offset];
-                let value = match op {
-                    Operator::Add => a + b,
-                    Operator::Multiply => a * b,
-                    Operator::Concat => format!("{}{}", a, b).parse().unwrap(),
-                };
-                Pos {
-                    offset: next_offset,
-                    op: Some(op),
-                    value,
-                }
-            })
-            .collect()
-    };
-    let success = |pos: &Pos| pos.offset == right.len() - 1 && pos.value == *left;
-
-    bfs(&start, successors, success).is_some()
 }
