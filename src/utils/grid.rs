@@ -113,7 +113,7 @@ where
     E: Debug,
     T: FromStr<Err = E>,
 {
-    pub fn from_lines(lines: &[impl AsRef<str>]) -> Result<Self> {
+    pub fn from_lines<S: AsRef<str>>(lines: &[S]) -> Result<Self> {
         let w = lines[0].as_ref().len();
         for line in lines {
             ensure!(line.as_ref().len() == w);
@@ -160,7 +160,9 @@ impl<T> Grid<T> {
     pub fn from_data(data: Vec<Vec<T>>) -> Self {
         let h = data.len();
         let w = data[0].len();
-        data.iter().for_each(|row| assert_eq!(row.len(), w));
+        for row in &data {
+            assert_eq!(row.len(), w);
+        }
         let data = data.into_iter().flatten().collect_vec();
         Self { w, h, data }
     }

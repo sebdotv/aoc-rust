@@ -2,7 +2,6 @@ use crate::challenge::Day;
 use crate::utils::grid::{Coord, Grid};
 use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
-use nom::AsChar;
 use std::ops::Range;
 use std::str::FromStr;
 
@@ -72,12 +71,12 @@ fn part2(data: &str) -> Result<usize> {
         match grid.get(&coord) {
             Operator(op) => {
                 let end_x = prev_op_x.map_or(grid.w, |x| x - 1);
-                let output = process_column(&grid, op, x..end_x);
+                let output = process_column(&grid, *op, x..end_x);
                 sum += output;
                 prev_op_x = Some(x);
             }
             Whitespace => {}
-            other => {
+            other @ Digit(_) => {
                 bail!("unexpected cell: {:?}", other)
             }
         }
@@ -86,7 +85,7 @@ fn part2(data: &str) -> Result<usize> {
     Ok(sum)
 }
 
-fn process_column(grid: &Grid<Cell>, op: &Operator, x_range: Range<usize>) -> usize {
+fn process_column(grid: &Grid<Cell>, op: Operator, x_range: Range<usize>) -> usize {
     use Cell::*;
 
     // right to left
@@ -99,8 +98,8 @@ fn process_column(grid: &Grid<Cell>, op: &Operator, x_range: Range<usize>) -> us
             match grid.get(&coord) {
                 Digit(d) => number.push_str(&d.to_string()),
                 Whitespace => {}
-                _ => panic!("unexpected cell"),
-            };
+                other @ Operator(_) => panic!("unexpected cell: {:?}", other),
+            }
         }
         let number = number.parse::<usize>().unwrap();
         numbers.push(number);
@@ -138,11 +137,10 @@ enum Operator {
     Mul,
 }
 impl Operator {
-    fn apply(&self, nums: &[usize]) -> usize {
+    fn apply(self, nums: &[usize]) -> usize {
         match self {
             Self::Add => nums.iter().sum::<usize>(),
             Self::Mul => nums.iter().product(),
-            _ => panic!("unknown operator"),
         }
     }
 }

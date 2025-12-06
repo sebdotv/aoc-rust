@@ -12,6 +12,6 @@ pub fn read_data_file(
         .join(dir_name)
         .join(data_file_name);
     let data = std::fs::read_to_string(data_file_path.clone())
-        .with_context(|| format!("Could not open file {data_file_path:?}"))?;
+        .with_context(|| format!("Could not open file {}", data_file_path.display()))?;
     Ok(data)
 }
