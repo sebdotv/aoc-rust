@@ -14,7 +14,9 @@ pub mod utils;
 pub mod year2022;
 #[cfg(feature = "previous-years")]
 pub mod year2023;
+#[cfg(feature = "previous-years")]
 pub mod year2024;
+pub mod year2025;
 
 #[must_use]
 pub fn all_challenge_days() -> Vec<DayWrapper> {
@@ -23,7 +25,9 @@ pub fn all_challenge_days() -> Vec<DayWrapper> {
         year2022::challenge_days(),
         #[cfg(feature = "previous-years")]
         year2023::challenge_days(),
+        #[cfg(feature = "previous-years")]
         year2024::challenge_days(),
+        year2025::challenge_days(),
     ]
     .into_iter()
     .flatten()

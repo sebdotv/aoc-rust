@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, ensure, Result};
 use itertools::Itertools;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::EnumIter;
@@ -113,13 +113,16 @@ where
     E: Debug,
     T: FromStr<Err = E>,
 {
-    pub fn from_lines(lines: &[&str]) -> Result<Self> {
-        let w = lines[0].len();
+    pub fn from_lines(lines: &[impl AsRef<str>]) -> Result<Self> {
+        let w = lines[0].as_ref().len();
+        for line in lines {
+            ensure!(line.as_ref().len() == w);
+        }
         let h = lines.len();
         let data = lines
             .iter()
             .flat_map(|line| {
-                line.chars().map(|char| char.to_string()).map(|s| {
+                line.as_ref().chars().map(|char| char.to_string()).map(|s| {
                     s.parse::<T>().map_err(|e| {
                         anyhow!(
                             "Could not parse {} as {}: {:?}",
