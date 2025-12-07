@@ -6,7 +6,7 @@ use itertools::Itertools;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use strum_macros::EnumIter;
 
-#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
+#[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, Ord, PartialOrd)]
 pub struct Coord(pub usize, pub usize);
 
 impl Coord {
