@@ -44,12 +44,11 @@ cargo flamegraph -- --latest --part 2 --only input
 - `chrono`: date & time
 - `clap`: command line arguments
 - `colored`: terminal colors
-- `hex`: hexadecimal
 - `indexmap`: ordered hashmap
 - `itertools`: iterator tools
-- `lazy_static`: lazy statics
 - `nom`: parser combinators
 - `nom_locate`: special input type for `nom` to locate tokens
+- `nonempty`: non-empty vectors
 - `num_enum`: enum from number
 - `pathfinding`: pathfinding
 - `polyfit-rs`: polynomial fitting
