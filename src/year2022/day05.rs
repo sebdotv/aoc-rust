@@ -1,9 +1,8 @@
-use std::str::FromStr;
-
 use anyhow::{anyhow, Context, Result};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use regex::Regex;
+use std::str::FromStr;
+use std::sync::LazyLock;
 use strum_macros::Display;
 
 use crate::challenge::Day;
@@ -110,9 +109,8 @@ struct Move {
     to: usize,
 }
 
-lazy_static! {
-    static ref MOVE_RE: Regex = Regex::new(r"^move (\d+) from (\d+) to (\d+)$").unwrap();
-}
+static MOVE_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^move (\d+) from (\d+) to (\d+)$").unwrap());
 
 #[derive(Display, Debug, PartialEq, Eq, thiserror::Error)]
 enum ParseMoveError {

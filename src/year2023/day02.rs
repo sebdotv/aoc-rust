@@ -1,8 +1,8 @@
 use std::ops::Add;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 use anyhow::{anyhow, Result};
-use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::challenge::Day;
@@ -57,9 +57,7 @@ fn part2(data: &str) -> Result<u32> {
     Ok(sum)
 }
 
-lazy_static! {
-    static ref GAME_RE: Regex = Regex::new(r"^Game (\d+): (.*)$").unwrap();
-}
+static GAME_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^Game (\d+): (.*)$").unwrap());
 
 #[derive(Debug)]
 struct Game {

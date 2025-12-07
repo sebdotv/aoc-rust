@@ -60,7 +60,7 @@ fn find_reflection_horizontal(grid: &Pattern, diff: usize) -> Option<usize> {
 fn test_reflection_vertical(grid: &Pattern, col_before: usize) -> usize {
     let mut diff = 0;
     for y in 0..grid.h {
-        for i in 0..((grid.w + 1) / 2) {
+        for i in 0..grid.w.div_ceil(2) {
             if i > col_before {
                 continue;
             }
@@ -77,7 +77,7 @@ fn test_reflection_vertical(grid: &Pattern, col_before: usize) -> usize {
 fn test_reflection_horizontal(grid: &Pattern, row_before: usize) -> usize {
     let mut diff = 0;
     for x in 0..grid.w {
-        for i in 0..((grid.h + 1) / 2) {
+        for i in 0..grid.h.div_ceil(2) {
             if i > row_before {
                 continue;
             }

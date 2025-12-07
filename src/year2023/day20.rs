@@ -154,9 +154,9 @@ fn push_button(simulation: &mut Simulation) -> Vec<Pulse> {
 
         let new_pulses = module.process(pulse);
 
-        new_pulses
-            .into_iter()
-            .for_each(|pulse| pulse_queue.push_back(pulse));
+        for pulse in new_pulses {
+            pulse_queue.push_back(pulse);
+        }
     }
 
     processed_pulses

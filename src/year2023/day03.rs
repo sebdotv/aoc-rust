@@ -1,10 +1,9 @@
-use std::ops::Range;
-
 use anyhow::{Context, Result};
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 use regex::Regex;
+use std::ops::Range;
+use std::sync::LazyLock;
 
 use crate::challenge::Day;
 use crate::utils::grid::{Coord, Grid};
@@ -56,9 +55,7 @@ fn part1(data: &str) -> Result<u32> {
     Ok(sum)
 }
 
-lazy_static! {
-    static ref NUMBER_RE: Regex = Regex::new(r"\d+").unwrap();
-}
+static NUMBER_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\d+").unwrap());
 
 type NumberLocation = (Range<usize>, usize);
 fn find_numbers(lines: &[&str]) -> Vec<NumberLocation> {

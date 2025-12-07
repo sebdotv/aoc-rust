@@ -1,9 +1,9 @@
-use std::iter::repeat;
+use std::iter;
 use std::str::FromStr;
+use std::sync::LazyLock;
 
 use anyhow::{anyhow, Result};
 use indexmap::IndexSet;
-use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::challenge::Day;
@@ -38,9 +38,8 @@ fn part1(data: &str) -> Result<u32> {
     Ok(sum)
 }
 
-lazy_static! {
-    static ref RE: Regex = Regex::new(r"^Card\s+(\d+):\s+(.*)\s+\|\s+(.*)$").unwrap();
-}
+static RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^Card\s+(\d+):\s+(.*)\s+\|\s+(.*)$").unwrap());
 
 #[derive(Debug)]
 struct Card {
@@ -87,7 +86,7 @@ fn part2(data: &str) -> Result<u32> {
         .lines()
         .map(str::parse::<Card>)
         .collect::<Result<Vec<_>>>()?;
-    let mut copies = repeat(0u32).take(cards.len()).collect::<Vec<_>>();
+    let mut copies = iter::repeat_n(0u32, cards.len()).collect::<Vec<_>>();
     for (i, card) in cards.iter().enumerate() {
         let winning = card.count_winning();
         let instances = 1 + copies[i];

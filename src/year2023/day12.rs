@@ -51,8 +51,8 @@ fn part2(data: &str) -> Result<usize> {
 fn expand(line: &str) -> String {
     let (a, b) = line.split_once(' ').unwrap();
     [
-        iter::repeat(a).take(5).join("?"),
-        iter::repeat(b).take(5).join(","),
+        iter::repeat_n(a, 5).join("?"),
+        iter::repeat_n(b, 5).join(","),
     ]
     .join(" ")
 }

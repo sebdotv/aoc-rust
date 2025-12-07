@@ -80,7 +80,7 @@ fn prime_factorization_trial_division(x: u64) -> Vec<u64> {
     let mut f: u64 = 2; // the first possible factor
     let mut n = x;
     while n > 1 {
-        if n % f == 0 {
+        if n.is_multiple_of(f) {
             factors.push(f);
             n /= f;
         } else {

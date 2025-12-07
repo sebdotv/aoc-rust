@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 use crate::challenge::Day;
 
@@ -35,9 +35,8 @@ const DIGITS: [&str; 9] = [
     "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
 ];
 
-lazy_static! {
-    static ref DIGITS_CHARS: [Vec<char>; 9] = DIGITS.map(|s| s.chars().collect_vec());
-}
+static DIGITS_CHARS: LazyLock<[Vec<char>; 9]> =
+    LazyLock::new(|| DIGITS.map(|s| s.chars().collect_vec()));
 
 struct Part2Extractor {}
 impl Part2Extractor {

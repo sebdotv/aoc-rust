@@ -53,7 +53,7 @@ fn solve(data: &str, min_max: Option<(usize, usize)>) -> Result<usize> {
                     let r = try_antinode(x + i * dx, y + i * dy);
                     if r.is_none()
                         || min_max
-                            .map_or(false, |(_, max)| usize::try_from(i.abs()).unwrap() >= max)
+                            .is_some_and(|(_, max)| usize::try_from(i.abs()).unwrap() >= max)
                     {
                         break;
                     }
