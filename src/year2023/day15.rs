@@ -64,12 +64,10 @@ fn part2(data: &str) -> Result<usize> {
         .iter()
         .enumerate()
         .map(|(box_id, b)| {
-            let box_sum = b
-                .values()
+            b.values()
                 .enumerate()
                 .map(|(lens_slot, focal_length)| (1 + box_id) * (1 + lens_slot) * focal_length)
-                .sum::<usize>();
-            box_sum
+                .sum::<usize>()
         })
         .sum::<usize>();
 

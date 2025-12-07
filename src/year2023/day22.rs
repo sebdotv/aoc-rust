@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use indexmap::{IndexMap, IndexSet};
 use itertools::Itertools;
 
@@ -431,7 +431,7 @@ impl Display for LateralView<'_> {
                     .collect();
                 let c = match ids.iter().collect_vec().as_slice() {
                     [] => '.',
-                    [&id] => id.chars().next().unwrap(),
+                    [id] => id.chars().next().unwrap(),
                     _ => '?',
                 };
                 write!(f, "{}", c)?;

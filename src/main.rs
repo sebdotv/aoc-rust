@@ -47,15 +47,15 @@ fn main() -> Result<ExitCode> {
         .into_iter()
         .filter(|day| {
             let date = day.source_file_location().unwrap().date().unwrap();
-            if let Some(year) = args.year {
-                if date.year() != year {
-                    return false;
-                }
+            if let Some(year) = args.year
+                && date.year() != year
+            {
+                return false;
             }
-            if let Some(day) = args.day {
-                if date.day() != day {
-                    return false;
-                }
+            if let Some(day) = args.day
+                && date.day() != day
+            {
+                return false;
             }
             true
         })

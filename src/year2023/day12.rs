@@ -62,12 +62,11 @@ fn count_arrangements(record: &Record) -> usize {
         cache: HashMap::new(),
         cache_stats: CacheStats { hit: 0, miss: 0 },
     };
-    let result = cached_impl.rec(
+    cached_impl.rec(
         record.pattern.as_slice(),
         record.groups.as_slice(),
         Remaining::Free,
-    );
-    result
+    )
 }
 
 #[derive(Debug, Copy, Clone)]

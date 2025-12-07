@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use itertools::Itertools;
 use strum_macros::EnumString;
 
@@ -95,7 +95,7 @@ fn parse_hands(data: &str) -> Result<Vec<Hand>> {
 }
 
 fn total_score(hands: &[(Hand, HandType)], card_rank: fn(Card) -> usize) -> u32 {
-    let sum = hands
+    hands
         .iter()
         .sorted_by_key(|(hand, hand_type)| (hand_type, hand.cards.map(card_rank)))
         .rev()
@@ -104,8 +104,7 @@ fn total_score(hands: &[(Hand, HandType)], card_rank: fn(Card) -> usize) -> u32 
             let rank = i + 1;
             hand.bid * u32::try_from(rank).unwrap()
         })
-        .sum::<u32>();
-    sum
+        .sum::<u32>()
 }
 
 type Cards = [Card; 5];
@@ -119,9 +118,9 @@ struct Hand {
 fn hand_type(cards: &[Card]) -> HandType {
     let counts = cards.iter().counts();
     let groups = counts
-        .iter()
-        .filter(|(_, &count)| count > 1) // only keep pairs or more
-        .sorted_by_key(|(_, &count)| count)
+        .into_iter()
+        .filter(|(_, count)| *count > 1) // only keep pairs or more
+        .sorted_by_key(|(_, count)| *count)
         .rev()
         .collect_vec();
     match groups.as_slice() {
