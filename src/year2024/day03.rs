@@ -1,12 +1,13 @@
 use crate::challenge::Day;
 use anyhow::Result;
+use nom::Parser;
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take};
 use nom::character::complete::digit1;
 use nom::combinator::{map, map_res, value};
 use nom::multi::many1;
 use nom::{Finish, IResult};
-use nom_locate::{position, LocatedSpan};
+use nom_locate::{LocatedSpan, position};
 use std::fmt::{Display, Formatter};
 
 pub fn day() -> Day<usize> {
@@ -63,9 +64,9 @@ fn parse_mul(s: Span) -> IResult<Span, Mul> {
     let mut number = map_res(digit1, |s: Span| s.fragment().parse::<usize>());
     let (s, position) = position(s)?;
     let (s, _) = tag("mul(")(s)?;
-    let (s, a) = number(s)?;
+    let (s, a) = number.parse(s)?;
     let (s, _) = tag(",")(s)?;
-    let (s, b) = number(s)?;
+    let (s, b) = number.parse(s)?;
     let (s, _) = tag(")")(s)?;
     Ok((s, Mul { position, a, b }))
 }
@@ -77,7 +78,7 @@ fn skip1<T>(s: Span) -> IResult<Span, Option<T>> {
 
 fn parse_muls(s: Span) -> IResult<Span, Vec<Mul>> {
     let mul_or_skip = alt((map(parse_mul, Some), skip1));
-    let (s, muls) = many1(mul_or_skip)(s)?;
+    let (s, muls) = many1(mul_or_skip).parse(s)?;
     Ok((s, muls.into_iter().flatten().collect()))
 }
 
@@ -92,7 +93,7 @@ fn part1(data: &str) -> Result<usize> {
 
 fn parse_switch(s: Span) -> IResult<Span, Switch> {
     let (s, position) = position(s)?;
-    let (s, enable) = alt((value(true, tag("do()")), value(false, tag("don't()"))))(s)?;
+    let (s, enable) = alt((value(true, tag("do()")), value(false, tag("don't()")))).parse(s)?;
     Ok((s, Switch { position, enable }))
 }
 
@@ -102,7 +103,7 @@ fn parse_instructions(s: Span) -> IResult<Span, Vec<Instruction>> {
         map(parse_switch, |x| Some(Instruction::Switch(x))),
         skip1,
     ));
-    let (s, instructions) = many1(instruction)(s)?;
+    let (s, instructions) = many1(instruction).parse(s)?;
     Ok((s, instructions.into_iter().flatten().collect()))
 }
 
