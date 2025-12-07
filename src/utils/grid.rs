@@ -10,6 +10,14 @@ use strum_macros::EnumIter;
 pub struct Coord(pub usize, pub usize);
 
 impl Coord {
+    #[inline]
+    pub fn x(&self) -> usize {
+        self.0
+    }
+    #[inline]
+    pub fn y(&self) -> usize {
+        self.1
+    }
     pub fn manhattan_distance(&self, other: &Coord) -> usize {
         let Coord(x1, y1) = self;
         let Coord(x2, y2) = other;

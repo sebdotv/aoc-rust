@@ -1,14 +1,14 @@
 use crate::challenge::Day;
-use crate::utils::grid::{Direction, Grid};
+use crate::utils::grid::{Coord, Direction, Grid};
 use anyhow::Result;
 use itertools::Itertools;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use strum_macros::EnumString;
 
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (21, Some(1678)),
-        part2_solutions: Some((40, None)),
+        part2_solutions: Some((40, Some(357525737893560))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
@@ -61,6 +61,44 @@ enum Cell {
     Splitter,
 }
 
-fn part2(_data: &str) -> Result<usize> {
-    todo!()
+fn part2(data: &str) -> Result<usize> {
+    use Cell::*;
+    let grid: Grid<Cell> = data.parse()?;
+    let (start, _) = grid.iter().find(|(_, cell)| *cell == Start).unwrap();
+
+    // (x, timelines)
+    let mut beams = vec![(start.x(), 1)];
+
+    for y in 1..grid.h {
+        let mut new_beams = Vec::new();
+        for (x, timelines) in &beams {
+            match grid.get(&Coord(*x, y)) {
+                Empty => {
+                    // continue down
+                    new_beams.push((*x, *timelines));
+                }
+                Splitter => {
+                    // split
+                    new_beams.push((x - 1, *timelines));
+                    new_beams.push((x + 1, *timelines));
+                }
+                Start => panic!("unexpected cell"),
+            }
+        }
+
+        // combine beams at the same x position
+        let mut combined_beams: HashMap<usize, usize> = HashMap::new();
+        for (x, timelines) in new_beams {
+            *combined_beams.entry(x).or_default() += timelines;
+        }
+
+        beams = combined_beams
+            .into_iter()
+            .sorted_by_key(|&(x, _)| x)
+            .collect();
+    }
+
+    let timelines = beams.iter().map(|(_, timelines)| timelines).sum();
+
+    Ok(timelines)
 }
