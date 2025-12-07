@@ -17,6 +17,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - run: rustup toolchain install stable --profile minimal
       - name: Build
         run: cargo build
       - name: Clippy
