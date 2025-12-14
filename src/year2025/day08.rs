@@ -7,7 +7,7 @@ use std::collections::HashMap;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (40, Some(129564)),
-        part2_solutions: Some((25272, None)),
+        part2_solutions: Some((25272, Some(42047840))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
