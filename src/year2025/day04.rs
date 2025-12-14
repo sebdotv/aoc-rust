@@ -7,7 +7,7 @@ use strum_macros::EnumString;
 pub fn day() -> Day<usize> {
     Day {
         part1_solutions: (13, Some(1397)),
-        part2_solutions: Some((43, None)),
+        part2_solutions: Some((43, Some(8758))),
         part1_solver: part1,
         part2_solver: part2,
         source_file: file!(),
