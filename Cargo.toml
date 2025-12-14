@@ -15,6 +15,7 @@ anyhow = "1.0.76"
 chrono = "0.4.31"
 clap = { version = "4.4.11", features = ["derive"] }
 colored = "3.0.0"
+disjoint = "0.8.0"
 indexmap = "2.1.0"
 itertools = "0.14.0"
 nom = "8.0.0"
