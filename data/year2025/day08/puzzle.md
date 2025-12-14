@@ -55,8 +55,21 @@ After making the ten shortest connections, there are 11 circuits: one circuit wh
 
 Your list contains many junction boxes; connect together the *1000* pairs of junction boxes which are closest together. Afterward, *what do you get if you multiply together the sizes of the three largest circuits?*
 
-To begin, [get your puzzle input](8/input).
+Your puzzle answer was `129564`.
+
+The first half of this puzzle is complete! It provides one gold star: \*
+
+\--- Part Two ---
+----------
+
+The Elves were right; they *definitely* don't have enough extension cables. You'll need to keep connecting junction boxes together until they're all in *one large circuit*.
+
+Continuing the above example, the first connection which causes all of the junction boxes to form a single circuit is between the junction boxes at `216,146,977` and `117,168,530`. The Elves need to know how far those junction boxes are from the wall so they can pick the right extension cable; multiplying the X coordinates of those two junction boxes (`216` and `117`) produces `*25272*`.
+
+Continue connecting the closest unconnected pairs of junction boxes together until they're all in the same circuit. *What do you get if you multiply together the X coordinates of the last two junction boxes you need to connect?*
 
 Answer:
 
-You can also [Shareon [Bluesky](https://bsky.app/intent/compose?text=%22Playground%22+%2D+Day+8+%2D+Advent+of+Code+2025+%23AdventOfCode+https%3A%2F%2Fadventofcode%2Ecom%2F2025%2Fday%2F8) [Twitter](https://twitter.com/intent/tweet?text=%22Playground%22+%2D+Day+8+%2D+Advent+of+Code+2025&url=https%3A%2F%2Fadventofcode%2Ecom%2F2025%2Fday%2F8&related=ericwastl&hashtags=AdventOfCode) [Mastodon](javascript:void(0);)] this puzzle.
+Although it hasn't changed, you can still [get your puzzle input](8/input).
+
+You can also [Shareon [Bluesky](https://bsky.app/intent/compose?text=I%27ve+completed+Part+One+of+%22Playground%22+%2D+Day+8+%2D+Advent+of+Code+2025+%23AdventOfCode+https%3A%2F%2Fadventofcode%2Ecom%2F2025%2Fday%2F8) [Twitter](https://twitter.com/intent/tweet?text=I%27ve+completed+Part+One+of+%22Playground%22+%2D+Day+8+%2D+Advent+of+Code+2025&url=https%3A%2F%2Fadventofcode%2Ecom%2F2025%2Fday%2F8&related=ericwastl&hashtags=AdventOfCode) [Mastodon](javascript:void(0);)] this puzzle.
