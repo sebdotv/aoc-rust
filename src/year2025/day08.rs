@@ -37,11 +37,15 @@ fn part1(data: &str) -> Result<usize> {
 }
 fn part2(data: &str) -> Result<usize> {
     let points = parse_input(data);
-    let mut pairs = points.iter().tuple_combinations().collect_vec();
-    pairs.sort_by_key(|(p1, p2)| p1.dist2(p2));
+    let mut pairs = points
+        .iter()
+        .tuple_combinations()
+        .map(|(p1, p2)| (p1, p2, p1.dist2(p2)))
+        .collect_vec();
+    pairs.sort_by_key(|(_, _, dist2)| *dist2);
 
     let mut state = State::new(points.clone());
-    for (a, b) in pairs {
+    for (a, b, _) in pairs {
         state.connect(a, b);
         let (circuits, unconnected) = state.get_circuits();
         if unconnected.is_empty() && circuits.len() == 1 {
