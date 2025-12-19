@@ -16,6 +16,7 @@ chrono = "0.4.31"
 clap = { version = "4.4.11", features = ["derive"] }
 colored = "3.0.0"
 disjoint = "0.8.0"
+good_lp = { version = "1.14.2", default-features = false, features = ["highs"] }
 indexmap = "2.1.0"
 itertools = "0.14.0"
 nom = "8.0.0"
